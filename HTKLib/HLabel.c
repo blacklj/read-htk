@@ -40,11 +40,11 @@ static int trace = 0;
 #define T_SAV     0100     /* Label file saving */
 
 /* -------  Input file formats supported by this module ---------------
- 
+
       TIMIT - text files with each label on a line in the form
-                  start-sample end-sample  label   
-              (eg 456 7899 sh). 
-              
+                  start-sample end-sample  label
+              (eg 456 7899 sh).
+
       SCRIBE - SAM format basically a sequence of tagged lines of
               form
                        <header stuff>
@@ -53,7 +53,7 @@ static int trace = 0;
                    LBB:  st, ,en, label
                        ....
                    ELF:
-                   
+
 
       HTK   - a HTK transcription consists of one or more label lists
               where each label list is separated by 3 / characters
@@ -62,15 +62,15 @@ static int trace = 0;
               a labelled segment of speech
                  <label list> = <labelseg> { <labelseg> }
               each label seg consists of optional start and end times in
-              units of 100ns followed by one or more label names followed 
-         by an optional score  
+              units of 100ns followed by one or more label names followed
+         by an optional score
         <label> = [<start> <end>] < <name> [<score>] > [";" <comment>]
               The start and end times are written as ints externally but
               are stored as doubles, the score can be
               int or float.  The name must begin with a non-digit
               character other than the level separator.
 
-      ESPS  - waves label files. Text files with each label on a line 
+      ESPS  - waves label files. Text files with each label on a line
               in the form
                  time color-code label   (eg 0.138375 121 h#)
               see the ESPS waves manual pages for details
@@ -83,7 +83,7 @@ An MLF is a file containing a sequence of patterns, each pattern
 either points to a subdirectory to search for a label file or
 has a definition immediately following it (terminated by a period
 on a single line.  The file must start with the MLF id.
-   
+
 #!MLF!#
 "pattern1" -> "subdir1"
 "pattern2" => "subdir2"
@@ -94,7 +94,7 @@ on a single line.  The file must start with the MLF id.
 .
 "pattern4"
 etc
-   
+
 where -> denotes a simple search ie the name of the file matching
 pattern1 must be in subdir1; => denotes a full search so that some
 part of the file's path matching pattern2 must be in subdir2
@@ -133,10 +133,10 @@ static OutMLFEntry outMLFSet[MAXMLFS];      /* array of output MLFs */
 /* ---------------- Label Name Hashing ----------------- */
 
 #define HASHSIZE 250007                /* size of hash table */
-static NameCell *hashtab[HASHSIZE];  /* the actual table */
+static NameCell *hashtab[HASHSIZE];  /* the actual table 存放label的hash表，用于快速查找label */
 static MemHeap namecellHeap;         /* heap for name cells */
-static long numAccesses = 0;
-static long numTests = 0;
+static long numAccesses = 0;        /* 查找所有label的次数 */
+static long numTests = 0;           /* 总共查找hash表的次数 */
 
 /* Hash: return a hash value for given label name */
 static unsigned Hash(char *name)
@@ -192,6 +192,7 @@ void InitLabel(void)
 
 
 /* EXPORT->GetLabId: return id of given name */
+/* 查找名称为name的label, 如果insert为true，将新建label并存入hash表 */
 LabId GetLabId(char *name, Boolean insert)
 {
    int h;
@@ -231,10 +232,11 @@ void PrintNameTabStats(void)
 }
 
 /* EXPORT->ReadLabel: into buf from file f and return TRUE if ok */
+/* 从f中读取一个字符串，以空白符分割 */
 Boolean ReadLabel(FILE *f, char *buf)
 {
    int c;
-   
+
    c = fgetc(f);
    while (isspace(c)) c = fgetc(f);
    if (c==EOF || !isgraph(c)) return FALSE;
@@ -252,7 +254,7 @@ Boolean ReadLabel(FILE *f, char *buf)
 Transcription *CreateTranscription(MemHeap *x)
 {
    Transcription *t;
-   
+
    t = (Transcription *)New(x,sizeof(Transcription));
    t->head = t->tail = NULL;
    t->numLists = 0;
@@ -264,14 +266,14 @@ Transcription *CopyTranscription(MemHeap *x, Transcription *t)
 {
    Transcription *newt;
    LabList *ll,*newll;
-   
+
    newt = CreateTranscription(x);
    ll = t->head;
    for (ll = t->head; ll != NULL; ll=ll->next){
       newll = CopyLabelList(x,ll);
       AddLabelList(newll,newt);
    }
-   return newt;  
+   return newt;
 }
 
 /* EXPORT->CreateLabelList: create a new label list with sentinels */
@@ -279,14 +281,15 @@ LabList* CreateLabelList(MemHeap *x, int maxAuxLab)
 {
    LLink st,en;
    LabList *ll;
-   
+
    ll = (LabList *)New(x,sizeof(LabList));
    st = (LLink)New(x,sizeof(Label));
    en = (LLink)New(x,sizeof(Label));
-   st->labid = en->labid = NULL; 
+   st->labid = en->labid = NULL;
    st->pred = NULL; st->succ = en;
    en->succ = NULL; en->pred = st;
-   ll->head = st; ll->tail = en; ll->next = NULL;
+   ll->head = st; ll->tail = en;    /* head和tail作为哨兵 */
+   ll->next = NULL;
    ll->maxAuxLab = maxAuxLab;
    return ll;
 }
@@ -308,7 +311,7 @@ LabList* GetLabelList(Transcription *t, int n)
 {
    LabList* q;
    int i;
-   
+
    if (n>t->numLists)
       HError(6570,"GetLabelList: n[%d] > numLists[%d]",n,t->numLists);
    q = t->head;
@@ -321,7 +324,7 @@ LabList* CopyLabelList(MemHeap *x, LabList* ll)
 {
    LabList *newll;
    LLink p,q;
-   
+
    newll = CreateLabelList(x,ll->maxAuxLab);
    for (q=ll->head->succ; q->succ != NULL; q = q->succ){
       p = AddLabel(x,newll,q->labid,q->start,q->end,q->score);
@@ -338,9 +341,9 @@ LLink CreateLabel(MemHeap *x, int maxAux)
    int i;
    LabId *id;
    float *s;
-   
+
    p = (LLink)New(x,sizeof(Label));
-   p->labid = NULL; p->score = 0.0; 
+   p->labid = NULL; p->score = 0.0;
    p->auxLab = NULL; p->auxScore = NULL;
    p->start = p->end = 0;
    p->succ = p->pred = NULL;
@@ -351,17 +354,18 @@ LLink CreateLabel(MemHeap *x, int maxAux)
       for (i=1; i<=maxAux; i++){
          p->auxLab[i] = NULL;
          p->auxScore[i] = 0.0;
-      }  
+      }
    }
    return p;
 }
 
 /* EXPORT->AddLabel: append given label info to given label list */
+/* 将指定label存入labellist */
 LLink AddLabel(MemHeap *x, LabList *ll, LabId id,
                HTime st, HTime en, float score)
 {
    LLink p,q,newLL;
-   
+
    p = ll->tail->pred; q = ll->tail;
    newLL = CreateLabel(x,ll->maxAuxLab);
    newLL->labid = id; newLL->score = score; newLL->start = st; newLL->end = en;
@@ -374,7 +378,7 @@ LLink AddLabel(MemHeap *x, LabList *ll, LabId id,
 void AddAuxLab(LLink lab, int n, LabId *auxLab, float *auxScore)
 {
    int i;
-   
+
    for (i=1; i<=n; i++){
       lab->auxLab[i] = auxLab[i];
       lab->auxScore[i] = auxScore[i];
@@ -385,7 +389,7 @@ void AddAuxLab(LLink lab, int n, LabId *auxLab, float *auxScore)
 void DeleteLabel(LLink item)
 {
    LLink p,q;
-   
+
    if (item->pred == NULL || item->succ == NULL)
       HError(6571,"DeleteLabel: attempt to delete sentinel");
    p = item->pred; q = item->succ;
@@ -394,17 +398,19 @@ void DeleteLabel(LLink item)
 
 
 /* EXPORT->NumCases: find num cases of primary label in label list */
+/* 返回labellist中主label的个数 */
 int NumCases(LabList *ll, LabId id)
 {
    int n = 0;
    LLink p;
-   
-   for (p=ll->head->succ; p->succ!=NULL; p=p->succ) 
+
+   for (p=ll->head->succ; p->succ!=NULL; p=p->succ)
       if (p->labid == id) ++n;
    return n;
 }
 
 /* EXPORT->GetCase: find nth occ of primary label in label list */
+/* 从labellist中找到第n个labellist中的指定label */
 LLink GetCase(LabList *ll, LabId id, int n)
 {
    LLink p;
@@ -419,24 +425,28 @@ LLink GetCase(LabList *ll, LabId id, int n)
 }
 
 /* EXPORT->NumAuxCases: find num cases of aux label i in label list */
+/* i=0，计算labellist中指定label id的个数；
+ * i!=0，计算labellist中指定辅label id的个数。
+ */
 int NumAuxCases(LabList *ll, LabId id, int i)
 {
    int n = 0;
    LLink p;
-   
+
    if (ll->maxAuxLab < i)
       HError(6570,"NumAuxCases: aux idx %d > max[%d]",i,ll->maxAuxLab);
-   for (p=ll->head->succ; p->succ!=NULL; p=p->succ) 
+   for (p=ll->head->succ; p->succ!=NULL; p=p->succ)
       if ((i==0) ? (p->labid==id) : (p->auxLab[i]==id))  ++n;
    return n;
 }
 
 /* EXPORT->GetAuxCase: find nth occ of aux label i in label list */
+/* 从labellist中找到第n个labellist中的指定辅label */
 LLink GetAuxCase(LabList *ll, LabId id, int n, int i)
 {
    LLink p;
    int k=0;
-   
+
    if (ll->maxAuxLab < i)
       HError(6570,"GetAuxCase: aux idx %d > max[%d]",i,ll->maxAuxLab);
    for (p=ll->head->succ; p->succ!=NULL; p=p->succ) {
@@ -453,7 +463,7 @@ LLink GetLabN(LabList *ll, int n)
    int count=0;
    LLink p;
 
-   for (p=ll->head->succ; p->succ!= NULL; p=p->succ) 
+   for (p=ll->head->succ; p->succ!= NULL; p=p->succ)
       if (++count==n) return p;
    HError(6571,"GetLabN: %d'th label nonexistent",n);
    return NULL;
@@ -467,8 +477,8 @@ LLink GetAuxLabN(LabList *ll, int n, int i)
 
    if (ll->maxAuxLab < i)
       HError(6570,"GetAuxLabN: aux idx %d > max[%d]",i,ll->maxAuxLab);
-   for (p=ll->head->succ; p->succ!= NULL; p=p->succ) 
-      if (i==0 || p->auxLab[i]!=NULL)      
+   for (p=ll->head->succ; p->succ!= NULL; p=p->succ)
+      if (i==0 || p->auxLab[i]!=NULL)
          if (++count==n) return p;
    HError(6571,"GetAuxLabN: %d'th aux[%d] label nonexistent",n,i);
    return NULL;
@@ -481,7 +491,7 @@ int CountLabs(LabList *ll)
    LLink p;
 
    if (ll!=NULL)
-      for (p=ll->head->succ; p->succ!= NULL; p=p->succ) 
+      for (p=ll->head->succ; p->succ!= NULL; p=p->succ)
          ++count;
    return(count);
 }
@@ -503,7 +513,7 @@ int CountAuxLabs(LabList *ll, int i)
 HTime AuxLabEndTime(LLink p, int i)
 {
    LLink q;
-   
+
    q = p->succ;
    while (i!=0 && q->succ != NULL && q->auxLab[i]==NULL){
       p = q; q = q->succ;
@@ -516,7 +526,7 @@ static void PrintLabel(LLink p, int maxAux)
 {
    int n;
    LabId id;
-   
+
    printf("%8.0f%8.0f",p->start,p->end);
    printf(" %8s %5f",p->labid->name,p->score);
    for (n=1; n<=maxAux; n++){
@@ -531,7 +541,7 @@ void PrintList(LabList *ll)
 {
    int i;
    LLink p;
-   
+
    for (p=ll->head->succ,i=1; p->succ!= NULL; p=p->succ,i++) {
       printf("%4d. ",i);
       PrintLabel(p,ll->maxAuxLab);
@@ -543,7 +553,7 @@ void PrintTranscription(Transcription *t, char *title)
 {
    int i;
    LabList *ll;
-   
+
    printf("Transcription: %s [%d lists]\n",title,t->numLists);
    ll = t->head;
    for (i=1; i<=t->numLists; i++) {
@@ -553,11 +563,12 @@ void PrintTranscription(Transcription *t, char *title)
 }
 
 /* FilterLevel: remove all but given level from transcription */
+/* 只有辅label中lev级别的被保存下来 */
 static void FilterLevel(Transcription *t, int lev)
 {
    LabList *ll;
-   LLink p;   
-   
+   LLink p;
+
    for (ll = t->head; ll != NULL; ll = ll->next) {
       if (ll->maxAuxLab < lev)
          HError(6570,"FilterLevel: level %d > max[%d]",lev,ll->maxAuxLab);
@@ -595,7 +606,7 @@ static char trStr[256];
 Boolean IsNumeric(char *s)
 {
    int i,len;
-   
+
 #ifdef WIN32
    if(*s < 0)
       return FALSE;
@@ -603,7 +614,7 @@ Boolean IsNumeric(char *s)
 
    len = strlen(s)-1;
    if (!(isdigit((int) s[0])||s[0]=='+'||s[0]=='-')) return FALSE;
-   if (!(isdigit((int) s[len]))) return FALSE;   
+   if (!(isdigit((int) s[len]))) return FALSE;
    for (i=1; i<len; i++)
       if (!(isdigit((int) s[i]) || s[i]=='.' || s[i]=='-' || s[i]=='+' || s[i]=='e' || s[i]=='E' ))
          return FALSE;
@@ -624,7 +635,7 @@ static void GetTrSym(Source *src, Boolean htk)
    int nxtch;
    Boolean trSOL;
 
-   trNum = 0.0; trStr[0]='\0'; 
+   trNum = 0.0; trStr[0]='\0';
    if (trSym==TRNULL) curch = GetCh(src);
    if (trSym==TREOL || trSym==TRNULL)
       trSOL=TRUE;
@@ -636,7 +647,7 @@ static void GetTrSym(Source *src, Boolean htk)
    }
    if (!htk && curch == COMMCHAR)
       SkipLine(src);
-   
+
    switch (curch) {
    case EOF:
       trSym = TREOF;
@@ -694,7 +705,7 @@ static void GetTrSym(Source *src, Boolean htk)
          trSym = TRNUM;
          break;
       }
-      if (htk && compatMode && 
+      if (htk && compatMode &&
           (strcmp(LEVELSEP,trStr)==0 || strcmp(".",trStr)==0)) {
          src->wasNewline=FALSE;
          SkipWhiteSpace(src);
@@ -724,7 +735,7 @@ static void ExtendAux(MemHeap *x, LabList *ll, int n)
 
    if (n>=99)
       HError(6570, "ExtendAux: Too many auxiliary fields in label file");
-   
+
    oldn = ll->maxAuxLab; ll->maxAuxLab = n;
    for (p=ll->head->succ; p->succ!=NULL; p=p->succ){
       id = (LabId *)New(x,sizeof(LabId)*n) - 1; 
@@ -743,7 +754,7 @@ static void ExtendAux(MemHeap *x, LabList *ll, int n)
       printf("HLabel:     aux extended from %d to %d\n",oldn,n);
 }
 
-/* LoadHTKList: load a single HTK label list - dont create anything if 
+/* LoadHTKList: load a single HTK label list - dont create anything if
                 transAlt>0 and alt != transAlt */
 static LabList * LoadHTKList(MemHeap *x, Source *src, int alt)
 {
@@ -754,15 +765,15 @@ static LabList * LoadHTKList(MemHeap *x, Source *src, int alt)
    float score, auxScore[100];
    int n,maxAux = 0;
    Boolean ok;
-   
+
    ok = (transAlt==0) || (transAlt == alt);
    if (ok) ll = CreateLabelList(x,maxAux);  /* assume no aux labels */
    if (trace&T_HTKL)
       printf("HLabel: looking for lab list\n");
-   
+
    while (trSym==TRNUM || trSym==TRSTR){
       start = -1; end = -1; score = 0.0;
-      if (trSym==TRNUM) {
+      if (trSym==TRNUM) { /* start and end time */
          start = trNum; GetTrSym(src,TRUE);
          start *= htkLabelTimeScale;
          if (trSym==TRNUM) {
@@ -772,7 +783,7 @@ static LabList * LoadHTKList(MemHeap *x, Source *src, int alt)
       }
       if (trSym != TRSTR)
          HError(6550,"LoadHTKList: Label Name Expected");
-      labid = GetLabId(trStr,TRUE);
+      labid = GetLabId(trStr,TRUE); /* find or create a labid */
       GetTrSym(src,TRUE);
       if (trSym==TRNUM){
          score = trNum;
@@ -780,10 +791,10 @@ static LabList * LoadHTKList(MemHeap *x, Source *src, int alt)
       }
       if (trace&T_HTKL)
          printf("HLabel: adding %.0f %.0f %s %f\n",start,end,labid->name,score);
-      if (ok) p = AddLabel(x,ll,labid,start,end,score);
+      if (ok) p = AddLabel(x,ll,labid,start,end,score); /* add labid to labellist */
       /* Any aux labels ? */
       n = 0;
-      while (trSym != TREOL && trSym!=TREOF) {
+      while (trSym != TREOL && trSym!=TREOF) { /* load aux lab */
          n++;
          if (trSym != TRSTR)
             HError(6550,"LoadHTKList: Aux Label Name Expected");
@@ -803,11 +814,12 @@ static LabList * LoadHTKList(MemHeap *x, Source *src, int alt)
          if (n>maxAux) {
             ExtendAux(x,ll,n);
             maxAux = n;
-         } else while (n<maxAux) {
-            ++n;
-            auxLab[n] = NULL;
-            auxScore[n] = 0.0;
-         }
+         } else
+           while (n<maxAux) {
+             ++n;
+             auxLab[n] = NULL;
+             auxScore[n] = 0.0;
+           }
          AddAuxLab(p,n,auxLab,auxScore);
       }
       if (trSym!=TREOF)
@@ -821,22 +833,22 @@ static void LoadHTKLabels(MemHeap *x, Transcription *t, Source *src)
 {
    LabList *ll;
    int alt = 0;
-   
+
    InitTrScan();
    GetTrSym(src,TRUE);
    if (trSym==TRNUM || trSym==TRSTR){
       ll = LoadHTKList(x,src,++alt);
       AddLabelList(ll,t);
-      while (trSym == TRLEV){
+      while (trSym == TRLEV){ /* for multiple alternatives type */
          GetTrSym(src,TRUE);
          if (trSym != TREOL)
-            HError(6550,"LoadHTKList: End of Line after /// Expected");       
+            HError(6550,"LoadHTKList: End of Line after /// Expected");
          GetTrSym(src,TRUE);
          ll = LoadHTKList(x,src,++alt);
          AddLabelList(ll,t);
       }
    }
-   while (trSym==TREOL) 
+   while (trSym==TREOL)
       GetTrSym(src,TRUE);
    if (trSym != TREOF)
       HError(6550,"LoadHTKLabels: Junk at end of HTK transcription");
@@ -1021,10 +1033,10 @@ static void LoadSCRIBELabels(MemHeap *x, Transcription *t, Source *src)
 void TriStrip(char *s)
 {
    char buf[100],*p;
-   
+
    if ((p = strchr(s,'-')) == NULL) p = s; else ++p;
    strcpy(buf,p);
-   if ((p = strrchr(buf,'+')) != NULL) 
+   if ((p = strrchr(buf,'+')) != NULL)
       *p = '\0';
    strcpy(s,buf);
 }
@@ -1053,7 +1065,7 @@ static void StoreMLFEntry(MLFEntry *e)
 static Boolean FindMLFStr(char *s, char **st, char **en)
 {
    char *p,*q;
-   
+
    if (s==NULL || *s == '\0') return FALSE;
    p = strchr(s,'"');
    if (p==NULL || *(p+1)=='\0') return FALSE;
@@ -1067,7 +1079,7 @@ static Boolean FindMLFStr(char *s, char **st, char **en)
 static MLFDefType FindMLFType(char *s, char **en)
 {
    char *p;
-   
+
    p=strchr(s+1,'>');
    if (p!=NULL) {
       *en = p;
@@ -1082,7 +1094,7 @@ static Boolean NoMLFHeader(char *s)
 {
    int len;
    char *e;
-   
+
    /* 去除首部空白符 */
    len = strlen(s);
    while (isspace((int) *s) && len>7) {
@@ -1141,7 +1153,7 @@ static Boolean IsDotLine(char *s)
 MLFPatType ClassifyMLFPattern(char *s)
 {
    char *t;
-   
+
    if (strchr(s,'?') != NULL) return PAT_GENERAL;
    if (strchr(s,'*') == NULL) return PAT_FIXED;
    if (strlen(s)<=2) return PAT_GENERAL;
@@ -1161,7 +1173,7 @@ static unsigned MLFHash(char *s)
    return hashval;
 }
 
-/* EXPORT->LoadMasterFile: Load the Master Label File stored in fname 
+/* EXPORT->LoadMasterFile: Load the Master Label File stored in fname
                            and append the entries to the MLF table */
 void LoadMasterFile(char *fname)
 {
@@ -1172,7 +1184,7 @@ void LoadMasterFile(char *fname)
    Boolean inEntry = FALSE;   /* ignore ".." within an entry */
    MLFEntry *e;
    FILE *f;
-   
+
    if (numMLFs == MAXMLFS)
       HError(6520,"LoadMasterFile: MLF file limit reached [%d]",MAXMLFS);
    if ((f = fopen(fname,"rb")) == NULL)
@@ -1180,29 +1192,29 @@ void LoadMasterFile(char *fname)
    if (fgets(buf,1024,f) == NULL)
       HError(6513,"LoadMasterFile: MLF file is empty");
    if (NoMLFHeader(buf))
-      HError(6551,"LoadMasterFile: MLF file header is missing"); 
+      HError(6551,"LoadMasterFile: MLF file header is missing");
    incSpaces=FALSE;
-   while (fgets(buf,1024,f) != NULL){
-      if (!inEntry && FindMLFStr(buf,&pst,&pen)) {
+   while (fgets(buf,1024,f) != NULL){ /* read line */
+     if (!inEntry && FindMLFStr(buf,&pst,&pen)) { /* find a quoted string */
          e = (MLFEntry *)New(&mlfHeap,sizeof(MLFEntry));
          e->type = FindMLFType(pen+1,&men);
          if (e->type == MLF_IMMEDIATE) {
-            e->def.immed.fidx = numMLFs;
-            e->def.immed.offset = ftell(f);
+           e->def.immed.fidx = numMLFs; /* index of mlf files */
+           e->def.immed.offset = ftell(f); /* offset in a mlf file */
             if (e->def.immed.offset < 0)
                HError(6521,"LoadMasterFile: cant ftell on MLF file");
-            inEntry = TRUE;
+            inEntry = TRUE; /* skip to next mlf entry */
          } else {
             if (!FindMLFStr(men+1,&dst,&den))
                HError(6551,"LoadMasterFile: Missing subdir in MLF\n(%s)",buf);
             *den = '\0';
-            e->def.subdir = NewString(&mlfHeap,den-dst-1);
+            e->def.subdir = NewString(&mlfHeap,den-dst-1); /* find labels dir */
             strcpy(e->def.subdir,dst+1);
          }
          *pen = '\0';         /* overwrite trailing pattern quote */
          ++pst;               /* skipover leading pattern quote */
          e->patType = ClassifyMLFPattern(pst);
-         if (e->patType == PAT_ANYPATH) 
+         if (e->patType == PAT_ANYPATH)
             pst += 2;         /* skipover leading "* /" */
          e->pattern = NewString(&mlfHeap,pen-pst);
          strcpy(e->pattern,pst);
@@ -1242,7 +1254,7 @@ Boolean IsMLFFile(char *fn)
 {
    FILE *f;
    char buf[1024];
-   
+
    if ((f = fopen(fn,"rb")) == NULL) return FALSE;
    if (fgets(buf,1024,f) == NULL) {
       fclose(f); return FALSE;
@@ -1260,19 +1272,19 @@ MLFEntry *GetMLFTable(void)
 }
 
 /* SplitPath: last name in path is removed and prefixed to name, then
-              this new name is suffixed to subdir and stored in tryspec */            
+              this new name is suffixed to subdir and stored in tryspec */
 static void SplitPath(char *path, char *name, char *subdir, char *tryspec)
 {
    char buf1[1024],buf2[1024],*p;
    char pch[2] = " ";
-   
+
    pch[0] = PATHCHAR;
    PathOf(path,buf1); NameOf(path,buf2);
    if (strlen(name)>0 ) strcat(buf2,pch);    /* new name */
    strcat(buf2,name); strcpy(name,buf2);
    p = buf1+strlen(buf1)-1;                  /* new path */
    if (*p == PATHCHAR) *p = '\0';
-   strcpy(path,buf1);   
+   strcpy(path,buf1);
    strcpy(buf1,subdir);                      /* tryspec */
    p = buf1+strlen(buf1)-1;
    if (*p != PATHCHAR) strcat(buf1,pch);
@@ -1291,32 +1303,33 @@ static FILE * OpenLabFile(char *fname, Boolean *isMLF)
    char path[1024],name[256],tryspec[1024];
    Boolean isMatch = FALSE;
    unsigned fixedHash;     /* hash value for PAT_FIXED */
-   unsigned anypathHash;   /* hash value for PAT_ANYPATH */ 
+   unsigned anypathHash;   /* hash value for PAT_ANYPATH */
    char *fnStart;          /* start of actual file name */
    static MLFEntry *q=NULL;/* entry after last one accessed - checked first */
-   
+
+   /* try open file as mlf file */
    HDebug("OpenLabFile %s", fname);
-   *isMLF = FALSE; 
+   *isMLF = FALSE;
    fixedHash = anypathHash = MLFHash(fname);
    fnStart = strrchr(fname,PATHCHAR);
    if (fnStart != NULL) {
       ++fnStart;
       anypathHash = MLFHash(fnStart);
-   } else 
+   } else
       fnStart = fname;
    if (trace&T_MLF)
       printf("HLabel: Searching for label file %s\n",fname);
-   if (trace&T_MHASH) 
+   if (trace&T_MHASH)
       printf("HLabel:  anypath hash = %d;  fixed hash = %d\n",anypathHash,fixedHash);
    for (e=(q==NULL?mlfHead:q); e != NULL; e = (e==NULL?mlfHead:e->next)) {
       switch (e->patType){
       case PAT_GENERAL:
-         if (trace&T_MAT) 
+         if (trace&T_MAT)
             printf("HLabel:  general match against %s\n",e->pattern);
          isMatch = DoMatch(fname,e->pattern);
          break;
       case PAT_ANYPATH:
-         if (trace&T_MAT) 
+         if (trace&T_MAT)
             printf("HLabel:  anypath match against %s[%d]\n",e->pattern,e->patHash);
          if (e->patHash == anypathHash)
             isMatch = strcmp(e->pattern,fnStart) == 0;
@@ -1324,7 +1337,7 @@ static FILE * OpenLabFile(char *fname, Boolean *isMLF)
             isMatch = FALSE;
          break;
       case PAT_FIXED:
-         if (trace&T_MAT) 
+         if (trace&T_MAT)
             printf("HLabel:  fixed match against %s[%d]\n",e->pattern,e->patHash);
          if (e->patHash == fixedHash)
             isMatch = strcmp(e->pattern,fname) == 0;
@@ -1366,7 +1379,7 @@ static FILE * OpenLabFile(char *fname, Boolean *isMLF)
       if (q!=NULL) e=NULL;
       q = NULL;
    }
-   /* No MLF Match so try direct open */  
+   /* No MLF Match so try direct open */
    if (trace&T_SUBD)
       printf("HLabel: trying actual file %s\n",fname);
    f = fopen(fname,"rb");

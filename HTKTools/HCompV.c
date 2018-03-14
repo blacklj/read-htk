@@ -37,17 +37,17 @@ char *hcompv_vc_id = "$Id: HCompV.c,v 1.1.1.1 2006/10/11 09:54:59 jal58 Exp $";
 
 
 /*
-   This program calculates a single overall variance vector from a
-   sequence of training files.  This vector is then copied into
-   all of the components of all the states of the hidden Markov
-   model specified on the command line.  Optionally, HCompV
-   will also update the mean vector. HCompV.c can be used as
-   the initial step in Fixed Variance and Grand Variance training schemes,
-   and to initialise HMMs for "flat-start" training.
-   The structure of the HMM to be initialised must be
-   defined beforehand (eg using a prototype HMM def).
+  This program calculates a single overall variance vector from a
+  sequence of training files.  This vector is then copied into
+  all of the components of all the states of the hidden Markov
+  model specified on the command line.  Optionally, HCompV
+  will also update the mean vector. HCompV.c can be used as
+  the initial step in Fixed Variance and Grand Variance training schemes,
+  and to initialise HMMs for "flat-start" training.
+  The structure of the HMM to be initialised must be
+  defined beforehand (eg using a prototype HMM def).
 
-   It can also be used to generate variance floor vectors.
+  It can also be used to generate variance floor vectors.
 */
 
 #include "HShell.h"
@@ -433,53 +433,53 @@ void LoadFile(char *fn)
   int i,j,ncas,nObs;
   LLink p;
 
-  printf("DEBUG==> fn is %s\n", fn);
-    if (segId == NULL)  {   /* load whole parameter file */
+  if (segId == NULL)  {   /* load whole parameter file */
+    if((pbuf=OpenBuffer(&iStack, fn, 0, dff, FALSE_dup, FALSE_dup))==NULL)
+      HError(2050,"LoadFile: Config parameters invalid");
+    GetBufferInfo(pbuf,&info);
+    CheckData(fn,info);
+    nObs = ObsInBuffer(pbuf);
+    for (i=0; i<nObs; i++){
+      ReadAsTable(pbuf,i,&obs);
+      AccVar(obs);
+    }
+    if (trace&T_LOAD) {
+      printf(" %d observations loaded from %s\n",nObs,fn);
+      fflush(stdout);
+    }
+    CloseBuffer(pbuf);
+  }
+  else {                  /* load segment of parameter file */
+    MakeFN(fn,labDir,labExt,labfn);
+    HDebug("fn= %s, labfn= %s", fn, labfn);
+    trans = LOpen(&iStack,labfn,lff);
+    ncas = NumCases(trans->head,segId);
+    if ( ncas > 0) {
       if((pbuf=OpenBuffer(&iStack, fn, 0, dff, FALSE_dup, FALSE_dup))==NULL)
         HError(2050,"LoadFile: Config parameters invalid");
       GetBufferInfo(pbuf,&info);
       CheckData(fn,info);
-      nObs = ObsInBuffer(pbuf);
-      for (i=0; i<nObs; i++){
-        ReadAsTable(pbuf,i,&obs);
-        AccVar(obs);
-      }
-      if (trace&T_LOAD) {
-        printf(" %d observations loaded from %s\n",nObs,fn);
-        fflush(stdout);
-      }
-      CloseBuffer(pbuf);
-    }
-    else {                  /* load segment of parameter file */
-      MakeFN(fn,labDir,labExt,labfn);
-      trans = LOpen(&iStack,labfn,lff);
-      ncas = NumCases(trans->head,segId);
-      if ( ncas > 0) {
-        if((pbuf=OpenBuffer(&iStack, fn, 0, dff, FALSE_dup, FALSE_dup))==NULL)
-          HError(2050,"LoadFile: Config parameters invalid");
-        GetBufferInfo(pbuf,&info);
-        CheckData(fn,info);
-        for (i=1,nObs=0; i<=ncas; i++) {
-          p = GetCase(trans->head,segId,i);
-          segStIdx= (long) (p->start/info.tgtSampRate);
-          segEnIdx  = (long) (p->end/info.tgtSampRate);
-          if (trace&T_SEGS)
-            printf(" loading seg %s [%ld->%ld]\n",
-                   segId->name,segStIdx,segEnIdx);
-          if (segEnIdx >= ObsInBuffer(pbuf))
-            segEnIdx = ObsInBuffer(pbuf)-1;
-          if (segEnIdx >= segStIdx) {
-            for (j=segStIdx;j<=segEnIdx;j++) {
-              ReadAsTable(pbuf,j,&obs);
-              AccVar(obs); ++nObs;
-            }
+      for (i=1,nObs=0; i<=ncas; i++) {
+        p = GetCase(trans->head,segId,i);
+        segStIdx= (long) (p->start/info.tgtSampRate);
+        segEnIdx  = (long) (p->end/info.tgtSampRate);
+        if (trace&T_SEGS)
+          printf(" loading seg %s [%ld->%ld]\n",
+                 segId->name,segStIdx,segEnIdx);
+        if (segEnIdx >= ObsInBuffer(pbuf))
+          segEnIdx = ObsInBuffer(pbuf)-1;
+        if (segEnIdx >= segStIdx) {
+          for (j=segStIdx;j<=segEnIdx;j++) {
+            ReadAsTable(pbuf,j,&obs);
+            AccVar(obs); ++nObs;
           }
         }
-        CloseBuffer(pbuf);
-        if (trace&T_LOAD)
-          printf(" %d observations loaded from %s\n",nObs,fn);
       }
+      CloseBuffer(pbuf);
+      if (trace&T_LOAD)
+        printf(" %d observations loaded from %s\n",nObs,fn);
     }
+  }
   ResetHeap(&iStack);
 }
 

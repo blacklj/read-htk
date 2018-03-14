@@ -230,19 +230,19 @@ void LoadSegment(SegStore ss, HTime start, HTime end, ParmBuf pbuf)
 	if (ss->hasfv) fv = CreateSequence(ss->mem,ss->segLen);
 	for (i=st; i<=en; i++) {
 		if (ss->hasfv) { /* put new vectors in ss->o */
-			for (s=1; s<=S; s++) 
+			for (s=1; s<=S; s++)
 			  ss->o.fv[s] = CreateVector(ss->mem,ss->o.swidth[s]);
 		}
 		ReadAsTable(pbuf,i,&(ss->o));
 		if (ss->hasvq) {
 			vqItem = (short *)New(ss->mem,sizeof(short)*(S+1));
-			for (s=1; s<=S; s++) 
+			for (s=1; s<=S; s++)
 			  vqItem[s] = ss->o.vq[s];
 			StoreItem(vq, (Ptr) vqItem);
 		}
 		if (ss->hasfv) {
 			fvItem = (Vector *)New(ss->mem,sizeof(Vector)*(S+1));
-			for (s=1; s<=S; s++) 
+			for (s=1; s<=S; s++)
 			  fvItem[s] = ss->o.fv[s];
 			StoreItem(fv, (Ptr) fvItem);
 		}

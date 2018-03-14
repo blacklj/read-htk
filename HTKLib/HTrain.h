@@ -75,7 +75,7 @@ typedef struct {	 /* block的链表，含首尾指针 */
 typedef SequenceInfo *Sequence;
 
 Sequence CreateSequence(MemHeap *x, int blkSize);
-/* 
+/*
    Create and return an empty sequence.  Each sequence is accessed by
    an index in range 1..nItems.  The blkSize affects efficiency, it
    should be large for random access to long sequences and small if
@@ -85,13 +85,13 @@ Sequence CreateSequence(MemHeap *x, int blkSize);
 */
 
 void StoreItem(Sequence seq, Ptr item);
-/* 
+/*
    Add item to end of sequence
 */
 
 void DeleteItem(Sequence seq, int i);
 /*
-   Delete i'th Item from seq. 
+   Delete i'th Item from seq.
 */
 
 Ptr GetItem(Sequence seq, int i);
@@ -101,12 +101,12 @@ Ptr GetItem(Sequence seq, int i);
 
 void SequenceMean(Sequence ss, Vector mean);
 /*
-   Compute the mean of the set (sequence) of vectors stored in ss.  
+   Compute the mean of the set (sequence) of vectors stored in ss.
 */
-   
+
 void SequenceCov(Sequence ss, CovKind ck, Covariance cov, Vector mean);
 /*
-   Compute the (co)variance of the set (sequence) of vectors stored 
+   Compute the (co)variance of the set (sequence) of vectors stored
    in ss whose mean is given by mean.  The form of the covariance
    is determined by ck which must be DIAGC,INVDIAGC or FULLC.
 */

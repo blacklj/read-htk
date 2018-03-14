@@ -716,7 +716,7 @@ int  NumArgs(void)
 ArgKind NextArg(void)
 {
    char *s,*p;
-   
+
    if (NumArgs() == 0) return NOARG;
    s = GetNextArg(FALSE);
    if (wasQuoted)
@@ -1034,7 +1034,7 @@ char *SrcPosition(Source src, char *s)
 int GetCh(Source *src)
 {
    int c;
-   
+
    if (!src->pbValid){
       c = fgetc(src->f);  ++src->chcount;
    } else{
@@ -1688,9 +1688,9 @@ char * NameOf(char *fn, char *s)
 
    CheckFn(fn);
    t = strrchr(fn,PATHCHAR);
-   if (t == NULL) 
+   if (t == NULL)
       t = fn;
-   else 
+   else
       t++;
    return strcpy(s,t);
 }
@@ -1711,11 +1711,11 @@ char * BaseOf(char *fn, char *s)
 char * PathOf(char *fn, char *s)
 {
    char *t;
-   
+
    CheckFn(fn);
    strcpy(s,fn);
    t = strrchr(s,PATHCHAR);
-   if (t == NULL) 
+   if (t == NULL)
       *s='\0';
    else
       *++t = '\0';
@@ -1726,7 +1726,7 @@ char * PathOf(char *fn, char *s)
 char * ExtnOf(char *fn, char *s)
 {
    char *t,buf[100];
-   
+
    NameOf(fn,buf);
    t = strrchr(buf,'.');
    if (t == NULL){
@@ -1740,10 +1740,10 @@ char * MakeFN(char *fn, char *path, char *ext, char *s)
 {
    char newPath[MAXFNAMELEN], base[MAXSTRLEN], newExt[MAXSTRLEN];  /* components of new fn */
    int i;
-   
+
    CheckFn(path);
    BaseOf(fn,base);
-   if (path==NULL) 
+   if (path==NULL)
       PathOf(fn,newPath);
    else
       strcpy(newPath,path);
@@ -1751,7 +1751,6 @@ char * MakeFN(char *fn, char *path, char *ext, char *s)
       ExtnOf(fn,newExt);
    else 
       strcpy(newExt,ext);
-   printf("HShell: MakeFN newPath is %s\n", newPath);
    i = strlen(newPath);
    if (i>0 && newPath[i-1] != PATHCHAR) {
       newPath[i] = PATHCHAR;
@@ -1763,7 +1762,6 @@ char * MakeFN(char *fn, char *path, char *ext, char *s)
       strcat(s,".");
       strcat(s,newExt);
    }
-   printf("MakeFN return is %s\n", s);
    return s;
 }
 
@@ -1801,7 +1799,7 @@ Boolean RMatch(char *s,char *p,int slen,int minplen,int numstars)
    if (*p == *s || *p == '?')
       return RMatch(s+1,p+1,slen-1,minplen-1,numstars);
    else
-      return FALSE;  
+      return FALSE;
 }
 
 /* EXPORT->DoMatch: return TRUE if s matches pattern p */
@@ -1809,7 +1807,7 @@ Boolean DoMatch(char *s, char *p)
 {
    int slen, minplen, numstars;
    char *q,c;
-   
+
    slen = strlen(s);
    minplen = 0; numstars = 0; q = p;
    while ((c=*q++))

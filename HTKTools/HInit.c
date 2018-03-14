@@ -68,12 +68,12 @@ char *hinit_vc_id = "$Id: HInit.c,v 1.1.1.1 2006/10/11 09:55:01 jal58 Exp $";
 #include "HTrain.h"
 
 /* Global Settings */
-static char * segLab = NULL;        /* segment label if any 标注名 */
+static char * segLab = NULL;        /* segment label if any 标注字符串，如 'yes' */
 static LabId  segId  = NULL;        /* and its id */
 static char * labDir = NULL;        /* label file directory 标注文件所在目录 */
 static char * labExt = "lab";       /* label file extension */
-static int  maxIter  = 20;          /* max iterations in param estimation */
-static float epsilon = 1.0E-4;      /* convergence criterion */
+static int  maxIter  = 20;          /* max iterations in param estimation 最大迭代数 */
+static float epsilon = 1.0E-4;      /* convergence criterion 收敛值 */
 static float minVar  = 1.0E-2;      /* minimum variance */
 static float mixWeightFloor=0.0;    /*Floor for mixture/discrete prob weights*/
 static int minSeg    = 3;           /* min segments to train a model */
@@ -94,11 +94,11 @@ static Vector vFloor[SMAX];         /* variance floor - default is all zero */
 /* Major Data Structures plus related global vars*/
 static HMMSet hset;              /* The current unitary hmm set */
 static MLink macroLink;          /* Access to macro in HMMSet */
-static HLink hmmLink;            /* link to the hmm itself */
+static HLink hmmLink;            /* link to the hmm itself hmm指针 */
 static int maxMixInS[SMAX];      /* array[1..swidth[0]] of max mixes */
-static int nStates;              /* number of states in hmm */
-static int nStreams;             /* number of streams in hmm */
-static SegStore segStore;        /* Storage for data segments */
+static int nStates;              /* number of states in hmm hmm状态数 */
+static int nStreams;             /* number of streams in hmm hmm一个状态中的stream数 */
+static SegStore segStore;        /* Storage for data segments 存储所有数据段(start time ~ end time间)的观察向量信息 */
 static MemHeap segmentStack;     /* Used by segStore */
 static MemHeap sequenceStack;    /* For storage of sequences */
 static MemHeap clustSetStack;    /* For storage of cluster sets */
@@ -426,7 +426,7 @@ void LoadFile(char *fn)
   }
   else {                  /* load segment of parameter file */
     MakeFN(fn,labDir,labExt,labfn);
-    HDebug("labfn is %s", labfn);
+    HDebug("fn is %s, labfn is %s, segLab is %s", fn, labfn, segLab);
     trans = LOpen(&transStack,labfn,lff);
     ncas = NumCases(trans->head,segId);
     if ( ncas > 0) {
@@ -437,6 +437,7 @@ void LoadFile(char *fn)
         if (segEnIdx >= ObsInBuffer(pbuf))
           segEnIdx = ObsInBuffer(pbuf)-1;
         if (segEnIdx - segStIdx + 1 >= nStates-2) {
+          HDebug("start time is %f, end time is %f", p->start, p->end);
           LoadSegment(segStore, p->start, p->end, pbuf);
           if (trace&T_LD1)
             printf("  loading seg %s %f[%ld]->%f[%ld]\n",segId->name,

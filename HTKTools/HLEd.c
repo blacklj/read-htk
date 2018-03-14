@@ -3,7 +3,7 @@
 /*                          ___                                */
 /*                       |_| | |_/   SPEECH                    */
 /*                       | | | | \   RECOGNITION               */
-/*                       =========   SOFTWARE                  */ 
+/*                       =========   SOFTWARE                  */
 /*                                                             */
 /*                                                             */
 /* ----------------------------------------------------------- */
@@ -32,7 +32,7 @@ char *hled_vc_id = "$Id: HLEd.c,v 1.1.1.1 2006/10/11 09:55:01 jal58 Exp $";
 
 /*
    This program reads in a list of 'editing' commands from a
-   script file and then makes an edited copy of one or more 
+   script file and then makes an edited copy of one or more
    label files.  Each edit command in the script file must be
    on a separate line.  The commands supported are printed by
    the Summary routine.  Some commands can be 1 or 2 letters.
@@ -64,10 +64,10 @@ static int nParm = 0;               /* total num params */
 static char * newDir    = NULL;     /* dest label file directory */
 static char * newExt    = "lab";    /* dest label file extension */
 
-typedef enum { 
-   NOCMD=0, 
-   REPLACE, CHANGE, FIND,   MERGE,  EDOP_DELETE, DEFCON, TRIST,  
-   SBDEF,   EXPAND, IFILL,  SORT,   WBDEF,  VBDEF,  LCTXT,  
+typedef enum {
+   NOCMD=0,
+   REPLACE, CHANGE, FIND,   MERGE,  EDOP_DELETE, DEFCON, TRIST,
+   SBDEF,   EXPAND, IFILL,  SORT,   WBDEF,  VBDEF,  LCTXT,
    RCTXT,   TCTXT,  SETLEV, DELLEV, SPLLEV, ISIL,
    LASTCMD
 } EdOp;
@@ -285,7 +285,7 @@ int main(int argc, char *argv[])
 void SetConfParms(void)
 {
    int i;
-   
+
    nParm = GetConfig("HLED", TRUE, cParm, MAXGLOBS);
    if (nParm>0) {
       if (GetConfInt(cParm,nParm,"TRACE",&i)) trace = i;
@@ -298,7 +298,7 @@ void Initialise(void)
    int i;
    char buf[MAXSTRLEN];
    LabId labid;
-   
+
    SetConfParms();
    asterix = GetLabId("*",TRUE);
    for (i=1;i<=99;i++) {
@@ -394,7 +394,7 @@ void PrintWBounds(void)
 Boolean IsVBnd(LabId id)
 {
    int i;
-   
+
    for (i=0; i<nVB; i++)
       if (vbnd[i] == id) return TRUE;
    return FALSE;
@@ -404,7 +404,7 @@ Boolean IsVBnd(LabId id)
 void PrintVBounds(void)
 {
    int i;
-   
+
    if (nVB==0)
       printf("No non inter-word boundaries defined\n");
    else {
