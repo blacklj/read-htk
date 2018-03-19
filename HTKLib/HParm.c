@@ -3,7 +3,7 @@
 /*                          ___                                */
 /*                       |_| | |_/   SPEECH                    */
 /*                       | | | | \   RECOGNITION               */
-/*                       =========   SOFTWARE                  */ 
+/*                       =========   SOFTWARE                  */
 /*                                                             */
 /*                                                             */
 /* ----------------------------------------------------------- */
@@ -65,9 +65,9 @@ static int trace = 0;
 /* --------------------- Global Variables ------------------- */
 
 static Boolean natWriteOrder = FALSE; /* Preserve natural write byte order*/
-extern Boolean vaxOrder;              /* true if byteswapping needed to 
+extern Boolean vaxOrder;              /* true if byteswapping needed to
                                          preserve SUNSO */
-/* varScale stuff: acts as a cache to stop the scaling file being re-read 
+/* varScale stuff: acts as a cache to stop the scaling file being re-read
    on each file opening */
 
 static float varScale[100];
@@ -82,15 +82,15 @@ static ParmKind ForcePKind = ANON; /* force to output a customized parm kind to 
 static HMMSet *hset = NULL;        /* hmmset to be used for frontend */
 
 /* ------------------------------------------------------------------- */
-/* 
+/*
    Parameter layout in tables/buffers is
-   
+
    Static [C0] [E]  Deltas Accs
-      
+
    _N option is ignored everywhere except when copying from buffer
    or table into an observation (ie in ExtractObservation) and in
-   GetBufferInfo() which returns the observation vector size in 
-   tgtvecSize taking into account _N. 
+   GetBufferInfo() which returns the observation vector size in
+   tgtvecSize taking into account _N.
    When _0 is used alone it behaves exactly like _E.  When _0_E,
    C0 is placed immediately before energy and in this case deltas
    are not allowed.
@@ -98,8 +98,8 @@ static HMMSet *hset = NULL;        /* hmmset to be used for frontend */
 
 /* ----------------- Configuration Information ----------------- */
 
-/* 
-   An IOConfig record specifies the mapping from the source 
+/*
+   An IOConfig record specifies the mapping from the source
    to the target parameterisation.  Its built in defaults
    can be overridden using configuration parameters.
 */
@@ -108,27 +108,27 @@ typedef enum { FFTbased, LPCbased, VQbased} CodeStyle;
 
 typedef struct {
   /* ------- Overrideable parameters ------- */
-  ParmKind srcPK;            /* Source ParmKind */ 
-  FileFormat srcFF;          /* Source File format */ 
-  HTime srcSampRate;         /* Source Sample Rate */ 
-  Boolean zMeanSrc;          /* Zero Mean the Source */
-  ParmKind tgtPK;            /* Target ParmKind */ 
-  FileFormat tgtFF;          /* Target File format */ 
-  HTime tgtSampRate;         /* Target Sample Rate */ 
-  Boolean saveCompressed;    /* If LPREFC save as IREFC else _C */
-  Boolean saveWithCRC;       /* Append check sum on save */
-  HTime winDur;              /* Source window duration */
-  Boolean useHam;            /* Use Hamming Window */
-  float preEmph;             /* PreEmphasis Coef */
+  ParmKind srcPK;            /* Source ParmKind 源参数文件类型 */
+  FileFormat srcFF;          /* Source File format 源音频文件类型 */
+  HTime srcSampRate;         /* Source Sample Rate 源文件采样率 */
+  Boolean zMeanSrc;          /* Zero Mean the Source 是否对源音频/参数文件做零均值 */
+  ParmKind tgtPK;            /* Target ParmKind 目标参数文件类型 */
+  FileFormat tgtFF;          /* Target File format 目标音频文件类型 */
+  HTime tgtSampRate;         /* Target Sample Rate 目标文件采用率 */
+  Boolean saveCompressed;    /* If LPREFC save as IREFC else _C 是否采用压缩格式 */
+  Boolean saveWithCRC;       /* Append check sum on save CRC校验 */
+  HTime winDur;              /* Source window duration 窗长 */
+  Boolean useHam;            /* Use Hamming Window 汉明窗 */
+  float preEmph;             /* PreEmphasis Coef 预加重系数 */
   Boolean usePower;          /* Use power instead of Magnitude */
   int numChans;              /* Number of filter bank channels */
   float loFBankFreq;         /* Fbank lo frequency cut-off */
   float hiFBankFreq;         /* Fbank hi frequency cut-off */
   float warpFreq;            /* Warp freq axis for vocal tract normalisation */
   float warpLowerCutOff;     /* lower and upper threshold frequencies */
-  float warpUpperCutOff;     /*   for linear frequency warping */  
+  float warpUpperCutOff;     /*   for linear frequency warping */
   int lpcOrder;              /* Order of lpc analysis */
-  float compressFact;        /* Compression factor for PLP */  
+  float compressFact;        /* Compression factor for PLP */
   int cepLifter;             /* Cepstral liftering coef */
   int numCepCoef;            /* Number of cepstral coef */
   float cepScale;            /* Scaling factor to avoid arithmetic problems */
@@ -159,7 +159,7 @@ typedef struct {
   float addDither;           /* Additional dither added to file */
   Boolean doubleFFT;         /* use twice the required FFT size */
   /* side based normalisation */
-  char *varScaleFN;          /* var scale file name */          
+  char *varScaleFN;          /* var scale file name */
   char* cMeanDN;             /* dir to find cepstral mean files */
   char* cMeanMask;           /* cepstral mean selection mask */
   char* cMeanPathMask;       /* cepstral mean path selection mask */
@@ -170,7 +170,7 @@ typedef struct {
   char* sideXFormExt;       /* side XForm mask */
 
   VQTable vqTab;             /* VQ table */
-  Matrix MatTran;            /* Stores transformation matrix */ 
+  Matrix MatTran;            /* Stores transformation matrix */
   char *MatTranFN;           /* points to the file name string */
   int thirdWin;              /* Accel window halfsize */
   int fourthWin;             /* Fourth order differential halfsize */
@@ -227,7 +227,7 @@ typedef IOConfigRec *IOConfig;
 
 typedef enum {
   /* Source characteristics */
-  SOURCEKIND,    /* ParmKind */ 
+  SOURCEKIND,    /* ParmKind */
   SOURCEFORMAT,  /* FileFormat */
   SOURCERATE,    /* Source sample rate in 100ns */
   ZMEANSOURCE,   /* Zero Mean (Wave only) */
@@ -238,7 +238,7 @@ typedef enum {
   SAVECOMPRESSED,/* Save output files in compressed form */
   SAVEWITHCRC,   /* Add crc check to output files */
   /* Waveform Analysis */
-  WINDOWSIZE,    /* Window size in 100ns */ 
+  WINDOWSIZE,    /* Window size in 100ns */
   USEHAMMING,    /* Apply Hamming Window */
   PREEMCOEF,     /* Preemphasis Coefficient */
   /* Filterbank Analysis */
@@ -250,7 +250,7 @@ typedef enum {
   WARPLCUTOFF,   /* VTL warping cutoff frequencies for smoothing */
   WARPUCUTOFF,
   /* LPC Analysis and Conversion */
-  LPCORDER,      /* LPC order */      
+  LPCORDER,      /* LPC order */
   COMPRESSFACT,  /* Compression Factor fo PLP */
   /* Cepstral Conversion */
   CEPLIFTER,     /* Cepstral liftering coefficient */
@@ -310,23 +310,23 @@ typedef enum {
 }IOConfParm;
 
 static char * ioConfName[CFGSIZE] = {
-  "SOURCEKIND", "SOURCEFORMAT", "SOURCERATE", "ZMEANSOURCE", 
-  "TARGETKIND", "TARGETFORMAT", "TARGETRATE", 
+  "SOURCEKIND", "SOURCEFORMAT", "SOURCERATE", "ZMEANSOURCE",
+  "TARGETKIND", "TARGETFORMAT", "TARGETRATE",
   "SAVECOMPRESSED", "SAVEWITHCRC",
-  "WINDOWSIZE", "USEHAMMING", "PREEMCOEF", 
+  "WINDOWSIZE", "USEHAMMING", "PREEMCOEF",
   "USEPOWER", "NUMCHANS", "LOFREQ", "HIFREQ",
   "WARPFREQ", "WARPLCUTOFF", "WARPUCUTOFF",
   "LPCORDER",  "COMPRESSFACT",
   "CEPLIFTER", "NUMCEPS", "CEPSCALE",
   "RAWENERGY","ENORMALISE", "ESCALE", "SILFLOOR",
   "DELTAWINDOW", "ACCWINDOW", "SIMPLEDIFFS",
-  "USESILDET", "SELFCALSILDET", "SPEECHTHRESH", "SILDISCARD", "SILENERGY", 
-  "SPCSEQCOUNT", "SPCGLCHCOUNT", "SILGLCHCOUNT", "SILSEQCOUNT", "SILMARGIN", 
+  "USESILDET", "SELFCALSILDET", "SPEECHTHRESH", "SILDISCARD", "SILENERGY",
+  "SPCSEQCOUNT", "SPCGLCHCOUNT", "SILGLCHCOUNT", "SILSEQCOUNT", "SILMARGIN",
   "MEASURESIL", "OUTSILWARN"
   ,"AUDIOSIG", "V1COMPAT", "VQTABLE"
   ,"ADDDITHER",
   "DOUBLEFFT",
-  "VARSCALEFN", 
+  "VARSCALEFN",
   "CMEANDIR" , "CMEANMASK", "CMEANPATHMASK",
   "VARSCALEDIR", "VARSCALEMASK" , "VARSCALEPATHMASK" , "SIDEXFORMMASK", "SIDEXFORMEXT",
   "MATTRANFN", "MATTRAN", "THIRDWINDOW", "FOURTHWINDOW"
@@ -398,7 +398,7 @@ typedef struct channelinfo {
 }
   ChannelInfo;
 
-typedef struct hparmsrcdef {
+typedef struct hparmsrcdef { /* 参数文件数据结构定义 */
   Ptr xInfo;         /* Application data */
   ParmKind pk;       /* Type of source - split into parmKind and */
   int size;          /* Sample size fields */
@@ -477,8 +477,7 @@ typedef enum channeltype {
   ch_hrfe,       /* The RFE is not yet reimplemented */
   ch_ext_wave,   /* Externally defined waveform source */
   ch_ext_parm    /* Externally defined parameterised source */
-}
-  ChannelType;
+} ChannelType;
 
 #define MIN_PB_SIZE 64
 #define MAX_PB_SIZE 2048
@@ -490,8 +489,7 @@ typedef struct pblock {
   int maxRows;      /* total number of rows in this block */
   void *data;       /* parameterised data for this block */
   struct pblock *next; /* Next block */
-}
-  PBlock;
+} PBlock;
 
 typedef struct _ParmBuf {
   MemHeap *mem;       /* Memory heap for this parm buf */
@@ -510,8 +508,7 @@ typedef struct _ParmBuf {
     AudioIn a;        /* the audio source */
     Wave w;           /* the waveform file */
     Ptr i;            /* data for external source */
-  }
-    in;
+  } in;
   unsigned short crcc;/* Put crcc here when we read it !! */
 
   /*  Channel buffer consists of a main active (for inwards reading, sil */
@@ -574,12 +571,12 @@ static void LoadVarScale (MemHeap *x, IOConfig cf)
     ReadString (&varsrc,buf);
     if  (strcmp (buf, "<VARSCALE>") != 0)
       HError (6376, "LoadVarScale: <VARSCALE> missing, read: %s", buf);
-    ReadInt (&varsrc, &dim, 1, vbinary);      
+    ReadInt (&varsrc, &dim, 1, vbinary);
     cf->varScale = CreateVector (x, dim);
     if (!ReadVector (&varsrc, cf->varScale, vbinary))
       HError(6376 ,"LoadVarScale: Couldn't read var scale vector from file");
     CloseSource (&varsrc);
-      
+
     /* Apply a linear transform to the global variance */
     if ((cf->MatTran != NULL) &&  (UseOldXFormCVN)) {
 
@@ -593,20 +590,20 @@ static void LoadVarScale (MemHeap *x, IOConfig cf)
 
       for (i=1;i<=NumRows(GlobalVar);i++){
         GlobalVar[i][i] = cf->varScale[i];
-      }         
+      }
 
       LinTranQuaProd(NewGlobalVar,cf->MatTran,GlobalVar);
 
       cf->varScale = CreateVector(x,NewFDim);
-      ZeroVector(cf->varScale); 
+      ZeroVector(cf->varScale);
 
       for (i=1;i<=NewFDim;i++){
         cf->varScale[i] = NewGlobalVar[i][i];
       }
-         
-      dim = NewFDim;             
+
+      dim = NewFDim;
     }
-  
+
     for (i=1; i<=dim; i++){                    /* cache the vector */
       varScale[i] = cf->varScale[i];
     }
@@ -616,10 +613,10 @@ static void LoadVarScale (MemHeap *x, IOConfig cf)
 }
 
 
-/*  
-    After the global feature transform is loaded as a macro via HModel, if the 
-    channel feature transform config is empty then this function is invoked in 
-    LoadMat to pass on all the channel config setup from the loaded input 
+/*
+    After the global feature transform is loaded as a macro via HModel, if the
+    channel feature transform config is empty then this function is invoked in
+    LoadMat to pass on all the channel config setup from the loaded input
     linear transform data structure.
 */
 static void SetInputXFormConfig(IOConfig cf, InputXForm *xf)
@@ -1042,7 +1039,7 @@ static void CheckBuffer(ParmBuf pbuf)
   Boolean finished=FALSE; /* Silence detected */
   Boolean cleared=FALSE;  /* Source of data is clear */
   Boolean empty=FALSE;    /* ParmBuf is empty */
-   
+
   if (pbuf->outRow==pbuf->spDetEn) empty=TRUE;
   if (pbuf->status>PB_INIT && pbuf->chClear) cleared=TRUE;
   if (pbuf->spDetEn<=pbuf->inRow) finished=TRUE;
@@ -1074,7 +1071,7 @@ static void CheckBuffer(ParmBuf pbuf)
 /* CheckAndFillBuffer: update status of given buffer and fill from channel */
 static void CheckAndFillBuffer(ParmBuf pbuf)
 {
-  if (pbuf->status>PB_INIT && (pbuf->status < PB_STOPPED || 
+  if (pbuf->status>PB_INIT && (pbuf->status < PB_STOPPED ||
                                pbuf->qen+pbuf->main.stRow<pbuf->spDetEn-1))
     FillBufFromChannel(pbuf,0);
   CheckBuffer(pbuf);
@@ -1112,7 +1109,7 @@ ParmKind Str2ParmKind(char *str)
   char *s,buf[255];
   Boolean hasE,hasD,hasN,hasA,hasT,hasF,hasC,hasK,hasZ,has0,hasV,found;
   int len;
-   
+
   hasV=hasE=hasD=hasN=hasA=hasT=hasF=hasC=hasK=hasZ=has0=FALSE;
   strcpy(buf,str); len=strlen(buf);
   s=buf+len-2;
@@ -1135,7 +1132,7 @@ ParmKind Str2ParmKind(char *str)
   }
   found = FALSE;
   do {
-    s=pmkmap[++i]; 
+    s=pmkmap[++i];
     if (strcmp(buf,s) == 0) {
       found = TRUE;
       break;
@@ -1402,20 +1399,20 @@ Boolean ValidConversion (ParmKind src, ParmKind tgt)
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},    /* src = ANON */
   };
   if (src == tgt) return TRUE;
-  if (xmap[src&BASEMASK][tgt&BASEMASK] == 0 ) return FALSE;
+  if (xmap[src&BASEMASK][tgt&BASEMASK] == 0 ) return FALSE; /* 不在上面可转化map中 */
   if ((tgt&BASEMASK) == DISCRETE){
-    if ((tgt&~(BASEMASK|HASCRCC)) != 0) return FALSE;
+    if ((tgt&~(BASEMASK|HASCRCC)) != 0) return FALSE; /* 离散型不支持crc校验 */
   } else {
-    if ((tgt&HASENERGY) && !(src&HASENERGY) ) 
+    if ((tgt&HASENERGY) && !(src&HASENERGY) )
       return FALSE;
-    if ((tgt&HASZEROC)  && !(src&HASZEROC) ) 
+    if ((tgt&HASZEROC)  && !(src&HASZEROC) )
       return FALSE;
-    if ((tgt&HASENERGY) && (tgt&HASZEROC) && (tgt&HASDELTA)) 
+    if ((tgt&HASENERGY) && (tgt&HASZEROC) && (tgt&HASDELTA))
       return FALSE;
-    if ((tgt&HASENERGY) && (tgt&HASZEROC) && (tgt&HASNULLE)) 
+    if ((tgt&HASENERGY) && (tgt&HASZEROC) && (tgt&HASNULLE))
       return FALSE;
     if (!(tgt&HASDELTA) && (tgt&HASACCS)) return FALSE;
-    if ((tgt&HASNULLE) && !((tgt&HASENERGY) || (tgt&HASZEROC)) ) 
+    if ((tgt&HASNULLE) && !((tgt&HASENERGY) || (tgt&HASZEROC)) )
       return FALSE;
     if ((tgt&HASNULLE) && !(tgt&HASDELTA) ) return FALSE;
   }
@@ -1484,9 +1481,9 @@ static int TotalComps(int nStatic, ParmKind pk)
 static int NumStatic(int nTotal, ParmKind pk)
 {
   short span[12];
-   
+
   FindSpans(span,pk,nTotal);
-  return span[1]-span[0]+1;  
+  return span[1]-span[0]+1;
 }
 
 /* NumEnergy: return the number of energy components in a parameter vector
@@ -1494,7 +1491,7 @@ static int NumStatic(int nTotal, ParmKind pk)
 static int NumEnergy(ParmKind pk)
 {
   int e;
-   
+
   if (!(pk&(HASENERGY|HASZEROC))) return 0;
   e = 1;
   if (pk&HASDELTA){
@@ -1509,7 +1506,7 @@ static int NumEnergy(ParmKind pk)
       }
     }
   }
-  return e;   
+  return e;
 }
 
 /* EqualKind: return true if kinds are internally compatible */
@@ -2846,7 +2843,7 @@ static void ExtractObservation(float *fp, Observation *o)
   int numS = o->swidth[0];
   Vector v,ev;
   Boolean wantE,skipE;
-   
+
   if (trace&T_OBS) {
     for (i=1,j=0; i<=numS; i++) j += o->swidth[i];
     printf("HParm: Extracting %d observation components\n",j);
@@ -2855,9 +2852,9 @@ static void ExtractObservation(float *fp, Observation *o)
   if (o->eSep){
     wantE = !(o->pk&HASNULLE);
     if (numS == 2){
-      w1 = o->swidth[1]; w2 = NumEnergy(o->pk); 
+      w1 = o->swidth[1]; w2 = NumEnergy(o->pk);
       w = w1+w2; n = w/w2;
-      v = o->fv[1]; ev = o->fv[numS];     
+      v = o->fv[1]; ev = o->fv[numS];
       for (i=j=k=1; i<=w; i++){
         if (i%n == 0 )  {
           if (wantE || i>n) ev[k++] = *fp;
@@ -2866,14 +2863,14 @@ static void ExtractObservation(float *fp, Observation *o)
           v[j++] = *fp++;
       }
     } else {
-      ev = o->fv[numS]; 
+      ev = o->fv[numS];
       for (i=1,k=1; i<numS; i++){
         v = o->fv[i];
         for (j=1; j<=o->swidth[i]; j++)
           v[j] = *fp++;
         if (wantE || i>1) ev[k++] = *fp;
         fp++;
-      }        
+      }
     }
     if (k-1 != o->swidth[numS])
       HError(6391,"ExtractObservation: %d of %d E vals copied",
@@ -2888,14 +2885,14 @@ static void ExtractObservation(float *fp, Observation *o)
       v = o->fv[i];
       for (j=1; j<=o->swidth[i]; j++){
         v[j] = *fp++; k++;
-        if (skipE && k==nStatic) ++fp;            
+        if (skipE && k==nStatic) ++fp;
       }
     }
   }
 }
 
 /* EXPORT->MakeObservation: Create obs using info in swidth and pkind */
-Observation MakeObservation(MemHeap *x, short *swidth, 
+Observation MakeObservation(MemHeap *x, short *swidth,
                             ParmKind pkind, Boolean forceDisc, Boolean eSep)
 {
   Observation ob;
@@ -3680,7 +3677,7 @@ static ReturnStatus OpenParmChannel(ParmBuf pbuf,char *fname, int *ret_val)
     if ((cf->srcPK&HASCOMPX) || (cf->srcPK&BASEMASK) == IREFC) {
       cf->srcUsed = sampSize/sizeof(short);
       pbuf->fShort=TRUE;
-      cf->A = CreateVector(pbuf->mem,cf->srcUsed); 
+      cf->A = CreateVector(pbuf->mem,cf->srcUsed);
       cf->B = CreateVector(pbuf->mem,cf->srcUsed);
       if (cf->srcPK&HASCOMPX) {
         nSamples-=4;
@@ -3697,8 +3694,7 @@ static ReturnStatus OpenParmChannel(ParmBuf pbuf,char *fname, int *ret_val)
         cf->crcc=UpdateCRCC(cf->B+1,cf->srcUsed,sizeof(float),
                             cf->bSwap,cf->crcc);
         cf->curPK -= HASCOMPX;
-      }
-      else {
+      } else {
         for(i=1;i<=cf->srcUsed;i++) cf->A[i]=32767.0,cf->B[i]=0.0;
         cf->curPK = LPREFC | (cf->curPK&~BASEMASK);
       }
@@ -3735,7 +3731,7 @@ static ReturnStatus OpenParmChannel(ParmBuf pbuf,char *fname, int *ret_val)
   if (nSamples>MAX_INT) {
     /* Used streamed file */
     pbuf->main.maxRows = MAX_PB_SIZE;
-    pbuf->lastRow = -1; 
+    pbuf->lastRow = -1;
     initRows = 0;
   }
   else {
@@ -4353,7 +4349,7 @@ static ReturnStatus OpenAsChannel(ParmBuf pbuf, int maxObs,
   return(SUCCESS);
 }
 
-/* EXPORT->OpenBuffer: open and return an input buffer 读取音频文件中的数据 */
+/* EXPORT->OpenBuffer: open and return an input buffer 读取音频/参数文件中的数据 */
 ParmBuf OpenBuffer(MemHeap *x, char *fn, int maxObs, FileFormat ff,
                    TriState enSpeechDet, TriState silMeasure)
 {
@@ -4396,14 +4392,14 @@ ParmBuf OpenBuffer(MemHeap *x, char *fn, int maxObs, FileFormat ff,
 }
 
 /* EXPORT->OpenExtBuffer: open and return an input buffer */
-ParmBuf OpenExtBuffer(MemHeap *x, char *fn, int maxObs, 
-                      FileFormat ff, HParmSrcDef ext, 
+ParmBuf OpenExtBuffer(MemHeap *x, char *fn, int maxObs,
+                      FileFormat ff, HParmSrcDef ext,
                       TriState enSpeechDet, TriState silMeasure)
 {
   ParmBuf pbuf;
-   
+
   if (x->type != MSTAK) {
-    HRError(6316,"OpenBuffer: memory must be an MSTAK");   
+    HRError(6316,"OpenBuffer: memory must be an MSTAK");
     return(NULL);
   }
   pbuf = (ParmBuf)New(x,sizeof(ParmBufRec));
@@ -4415,9 +4411,9 @@ ParmBuf OpenExtBuffer(MemHeap *x, char *fn, int maxObs,
 
   if(OpenAsChannel(pbuf,maxObs,fn,ff,silMeasure)<SUCCESS){
     Dispose(x, pbuf);
-    HRError(6316,"OpenBuffer: OpenAsChannel failed");   
+    HRError(6316,"OpenBuffer: OpenAsChannel failed");
     return(NULL);
-  }   
+  }
   return pbuf;
 }
 
@@ -4431,13 +4427,13 @@ HParmSrcDef CreateSrcExt(Ptr xInfo, ParmKind pk, int size, HTime sampPeriod,
                          int (*fGetData)(Ptr xInfo,Ptr bInfo,int n,Ptr data))
 {
   HParmSrcDef ext;
-   
+
   ext=(HParmSrcDef) New(&gcheap,sizeof(HParmSrcDefRec));
-  ext->xInfo=xInfo; ext->pk=pk; ext->size=size; ext->sampPeriod=sampPeriod; 
+  ext->xInfo=xInfo; ext->pk=pk; ext->size=size; ext->sampPeriod=sampPeriod;
   ext->fOpen=fOpen;ext->fClose=fClose;
   ext->fStart=fStart;ext->fStop=fStop;
   ext->fNumSamp=fNumSamp;ext->fGetData=fGetData;
-   
+
   return(ext);
 }
 
@@ -4570,7 +4566,7 @@ static void ReadObs(ParmBuf pbuf, int outRow,Observation *o)
   } else {
     for (pb=pbuf->main.next;pb!=NULL;pb=pb->next)
       if (pb->stRow+pb->nRows>outRow) break;
-    if (pb==NULL) 
+    if (pb==NULL)
       HError(6395,"ReadObs: Frame discarded from buffer");
     data=(float *) pb->data;
     i=outRow-pb->stRow;
@@ -4586,7 +4582,7 @@ static void ReadObs(ParmBuf pbuf, int outRow,Observation *o)
   } else {
     fp = (float *)data + i*pbuf->cf->nCols;
     ExtractObservation(fp,o);
-    if (o->pk&HASVQ) 
+    if (o->pk&HASVQ)
       GetVQ(pbuf->cf->vqTab, numS, o->fv, o->vq);
   }
 }
@@ -4695,7 +4691,7 @@ ParmBuf EmptyBuffer(MemHeap *x, int size, Observation o, BufferInfo info)
   IOConfig cf;
   char b1[50],b2[50];
 
-  if (x->type != MSTAK) 
+  if (x->type != MSTAK)
     HError(6316,"EmptyBuffer: memory must be an MSTAK");
   if (o.pk != info.tgtPK)
     HError(6373,"EmptyBuffer: obs pk[%s] != info tgtpk[%s]",
@@ -4703,7 +4699,7 @@ ParmBuf EmptyBuffer(MemHeap *x, int size, Observation o, BufferInfo info)
   if (o.bk & HASNULLE)
     HError(6373,"EmptyBuffer: obs bk[%s] != info tgtpk[%s]",
            ParmKind2Str(o.bk,b1),ParmKind2Str(info.tgtPK,b2));
-   
+
   /* Set up ParmBuf */
   pbuf = (ParmBuf)New(x,sizeof(ParmBufRec));
   pbuf->mem = x;    pbuf->status = PB_STOPPED;
@@ -4882,7 +4878,7 @@ void WriteESIGPHeader(FILE *f, IOConfig cf, HTime sampPeriod, short sampSize, sh
       AddField(&outList, field);
     }
   }
-   
+
   WriteHeader(outList,
               (natWriteOrder && vaxOrder) ? NATIVE : EDR1,
               f, NULL);

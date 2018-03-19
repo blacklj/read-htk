@@ -1594,11 +1594,11 @@ LogDouble LAdd(LogDouble x, LogDouble y)
 LogDouble LSub(LogDouble x, LogDouble y)
 {
    LogDouble diff,z;
-   
-   if (x<y)    
+
+   if (x<y)
       HError(5271,"LSub: result -ve");
    diff = y-x;
-   if (diff<minLogExp) 
+   if (diff<minLogExp)
       return  (x<LSMALL)?LZERO:x;
    else {
       z = 1.0 - exp(diff);
@@ -1628,7 +1628,7 @@ void srand48(long);
 #define SRAND(x) srand(x)
 #endif
 
-/* EXPORT->RandInit: Initialise random number generators 
+/* EXPORT->RandInit: Initialise random number generators
            if seed is -ve, then system clock is used */
 void RandInit(int seed)
 {

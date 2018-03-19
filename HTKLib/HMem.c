@@ -808,7 +808,7 @@ Boolean IsTriMat(Matrix m)
 int NumRows(Matrix m)
 {
    int *nrows;
-   
+
    nrows = (int *) m;
    return *nrows;
 }
@@ -817,7 +817,7 @@ int NumRows(Matrix m)
 int NumCols(Matrix m)
 {
    int *ncols;
-   
+
    ncols = (int *) m[1];
    return *ncols;
 }

@@ -69,6 +69,7 @@ Boolean vaxOrder = FALSE;
 
 #define MAXEFS 5                        /* max num ext files to remember */
 
+/* extended file example: logfile=physfile[s,e] */
 typedef struct {                        /* extended file name */
    char logfile[1024];                  /* logical name */
    char actfile[1024];                  /* actual file name */
@@ -95,17 +96,17 @@ char * RegisterExtFileName(char *s)
    strcpy(buf,s);
    eq = strchr(buf,'=');
    lb = strchr(buf,'[');
-   if (eq == NULL && lb == NULL) 
+   if (eq == NULL && lb == NULL)
       return s;
 
    if (trace&T_EXF)
       printf("Ext File Name: %s\n",buf);
 
    p = extFiles+extFileNext;
-   ++extFileNext; 
-   if (extFileNext==MAXEFS) 
+   ++extFileNext;
+   if (extFileNext==MAXEFS)
       extFileNext=0;
-   if (extFileUsed < MAXEFS) 
+   if (extFileUsed < MAXEFS)
       ++extFileUsed;
    p->stindex = p->enindex = -1;
 
@@ -129,7 +130,7 @@ char * RegisterExtFileName(char *s)
 
    if (trace&T_EXF) {
       printf("%s=%s", p->logfile, p->actfile);
-      if(p->stindex >=0) 
+      if(p->stindex >=0)
          printf("[%ld,%ld]", p->stindex, p->enindex);
       printf("\n");
    }
@@ -139,7 +140,7 @@ char * RegisterExtFileName(char *s)
 
 /* GetFileNameExt: return true if given file has extensions and return
    the extend info.  The problem with this routine is that the logical
-   name can be repeated in the buffer.  This is normally handled by 
+   name can be repeated in the buffer.  This is normally handled by
    comparing the pointer rather than the string itself.  However, if
    the application copies the logical file name, this would break.
    Hence, if the pointer is not there, the name is searched for
@@ -156,35 +157,35 @@ Boolean GetFileNameExt(char *logfn, char *actfn, long *st, long *en)
    /* First count number of times logfn occurs in buffer */
    noccs = 0;
    for (i=0,p=extFiles; i<extFileUsed; i++,p++){
-      if (strcmp(logfn,p->logfile) == 0 ) 
+      if (strcmp(logfn,p->logfile) == 0 )
          ++noccs;
    }
-   if (noccs==0) 
+   if (noccs==0)
       return FALSE;
 
    /* Try to find the logfn, by pointer first */
    for (i=0,p=extFiles; i<extFileUsed && !found; i++){
-      if (logfn == p->logfile) 
-         found = TRUE; 
-      else 
+      if (logfn == p->logfile)
+         found = TRUE;
+      else
          p++;
    }
 
    if (!found) {   /* look for actual name */
-      if (noccs>1) 
+      if (noccs>1)
          ambiguous = TRUE;
       p = extFiles + extFileNext;
       for (i=0; i<extFileUsed && !found; i++){
-         if (p==extFiles) 
+         if (p==extFiles)
             p += MAXEFS;
          else
             p--;
-         if (strcmp(logfn,p->logfile) == 0 ) 
+         if (strcmp(logfn,p->logfile) == 0 )
             found = TRUE;
       }
    }
 
-   if (!found) 
+   if (!found)
       return FALSE;
 
    /* Copy back info and warn if ambiguous */
@@ -1749,7 +1750,7 @@ char * MakeFN(char *fn, char *path, char *ext, char *s)
       strcpy(newPath,path);
    if (ext==NULL)
       ExtnOf(fn,newExt);
-   else 
+   else
       strcpy(newExt,ext);
    i = strlen(newPath);
    if (i>0 && newPath[i-1] != PATHCHAR) {
@@ -1818,7 +1819,7 @@ Boolean DoMatch(char *s, char *p)
 
 /* SpRMatch: recursively match s against pattern p, minplen
    is the min length string that can match p and
-   numstars is the number of *'s in p 
+   numstars is the number of *'s in p
 	   spkr is next character of the spkr name */
 static Boolean SpRMatch(char *s,char *p,char *spkr,
 			int slen,int minplen,int numstars)
@@ -1848,6 +1849,10 @@ static Boolean SpRMatch(char *s,char *p,char *spkr,
 }
 
 /* EXPORT->MaskMatch: return spkr if s matches pattern p */
+/* an example:
+      if str = sw1-4930-B_4930Bx-sw1_000126_000439.plp && mask = %%%%%%%%%%_*
+      then spkr = sw1-4930-B
+ */
 Boolean MaskMatch(char *mask, char *spkr, char *str)
 {
    int spkrlen, slen, minplen, numstars;

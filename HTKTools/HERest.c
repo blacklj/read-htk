@@ -3,7 +3,7 @@
 /*                          ___                                */
 /*                       |_| | |_/   SPEECH                    */
 /*                       | | | | \   RECOGNITION               */
-/*                       =========   SOFTWARE                  */ 
+/*                       =========   SOFTWARE                  */
 /*                                                             */
 /*                                                             */
 /* ----------------------------------------------------------- */
@@ -38,7 +38,7 @@ char *herest_vc_id = "$Id: HERest.c,v 1.2 2006/12/07 11:09:08 mjfg Exp $";
 /*
    This program is used to perform a single reestimation of
    the parameters of a set of HMMs using Baum-Welch.  Training
-   data consists of one or more utterances each of which has a 
+   data consists of one or more utterances each of which has a
    transcription in the form of a standard label file (segment
    boundaries are ignored).  For each training utterance, a
    composite model is effectively synthesised by concatenating
@@ -232,7 +232,7 @@ void SetuFlags(void)
 	char *s;
 
 	s=GetStrArg();
-	uFlags=(UPDSet) 0;        
+	uFlags=(UPDSet) 0;
 	while (*s != '\0')
 	  switch (*s++) {
 		  case 't': uFlags = (UPDSet) (uFlags+UPTRANS); break;
@@ -567,7 +567,7 @@ int main(int argc, char *argv[])
 /* -------------------------- Initialisation ----------------------- */
 
 void Initialise(FBInfo *fbInfo, MemHeap *x, HMMSet *hset, char *hmmListFn)
-{   
+{
 	HSetKind hsKind;
 	int L,P,S,vSize,maxM; 
 

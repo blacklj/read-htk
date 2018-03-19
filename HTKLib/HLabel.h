@@ -83,7 +83,7 @@ extern "C" {
     int maxAuxLab;           /* max aux labels (default=0) 辅助label的最大个数 */
   }LabList;
 
-  typedef struct {           /* 描述一个label文件 */
+  typedef struct {          /* 描述一个label文件 */
     LabList *head;          /* Pointer to head of Label List */
     LabList *tail;          /* Pointer to tail of Label List */
     int numLists;           /* num label lists (default=1) */

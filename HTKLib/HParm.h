@@ -3,7 +3,7 @@
 /*                          ___                                */
 /*                       |_| | |_/   SPEECH                    */
 /*                       | | | | \   RECOGNITION               */
-/*                       =========   SOFTWARE                  */ 
+/*                       =========   SOFTWARE                  */
 /*                                                             */
 /*                                                             */
 /* ----------------------------------------------------------- */
@@ -69,7 +69,7 @@ typedef short ParmKind;          /* BaseParmKind + Qualifiers */
 #define BASEMASK  077         /* Mask to remove qualifiers */
 
 /*
-   An observation contains one or more stream values each of which 
+   An observation contains one or more stream values each of which
    is either a vector of continuous values and/or a single
    discrete symbol.  The discrete vq symbol is included if the
    target kind is DISCRETE or the continuous parameter has the
@@ -152,7 +152,7 @@ typedef struct {
    int spDetEn;               /* Frame number of last frame of buffer */
    char *matTranFN;           /* Matrix transformation name */
    Ptr xform;                 /* Used for input xform associated with this buffer */
-}BufferInfo;
+} BufferInfo;
 
 /*
    External source definition structure
@@ -193,13 +193,13 @@ ParmBuf OpenBuffer(MemHeap *x, char *fn, int maxObs, FileFormat ff,
 /*
    Open and return a ParmBuf object connected to the current channel.
    If maxObs==0 blocks and reads whole of file/audio into memory and
-   returns with status==PB_STOPPED ready for table access.  All 
+   returns with status==PB_STOPPED ready for table access.  All
    parameters, associated with the loading and conversion of the
    source are defined using configuration parameters.
    If maxObs!=0 buffer may be read as a stream.  In this case reading
    should be via ReadAsBuffer calls which should continue until either
-   ReadAsBuffer returns FALSE or buffer status >= PB_STOPPED.  Note 
-   that for some types of input (eg pipes) end of data can only be 
+   ReadAsBuffer returns FALSE or buffer status >= PB_STOPPED.  Note
+   that for some types of input (eg pipes) end of data can only be
    determined by a failed attempt to read the final frame.
    If the speech detector is enabled (either by configuration or
    by explicit parameter in call) then silence measurement can be
@@ -242,9 +242,9 @@ void StartBuffer(ParmBuf pbuf);
    PB_INIT.
    This operation should now be non-blocking.
 */
-   
+
 void StopBuffer(ParmBuf pbuf);
-/*   
+/*
    Filling the buffer is stopped regardless of whether signals
    and/or silence/speech detection is enabled.  After making 
    this call, the pbuf status will change to PB_STOPPED.  
@@ -267,7 +267,7 @@ Boolean ReadAsBuffer(ParmBuf pbuf, Observation *o);
 */
 
 void ReadAsTable (ParmBuf pbuf, int index, Observation *o);
-/* 
+/*
    Get the index'th observation from buffer.  Buffer status
    must be PB_STOPPED.  Index runs 0,1,2,....
    By definition this operation is non-blocking.

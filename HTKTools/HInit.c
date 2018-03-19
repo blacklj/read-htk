@@ -295,7 +295,7 @@ int main(int argc, char *argv[])
 
 /* PrintInitialInfo: print a header of program settings */
 void PrintInitialInfo(void)
-{     
+{
   if (newModel) printf("Initialising  "); else printf("Updating  ");
   printf("HMM %s . . . \n",hmmfn);
   PrintHMMProfile(stdout, hmmLink);
@@ -404,7 +404,7 @@ void LoadFile(char *fn)
   char labfn[80];
   Transcription *trans;
   long segStIdx,segEnIdx;
-  static int segIdx=1;  /* Between call handle on latest seg in segStore */  
+  static int segIdx=1;  /* Between call handle on latest seg in segStore */
   static int prevSegIdx=1;
   HTime tStart, tEnd;
   int i,k,s,ncas,nObs=0,segLen;
@@ -677,7 +677,7 @@ void UniformSegment(void)
 void ShowTraceBack(int len, short **tB)
 {
   int i,state;
-   
+
   printf(" traceback matrix\n");
   for (state=2; state<nStates; state++) {
     printf("     %d     ",state);

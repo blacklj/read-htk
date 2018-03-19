@@ -82,19 +82,19 @@ static int nParm = 0;
 /* EXPORT->InitMap: initialise configuration parameters */
 void InitMap(void)
 {
-   int i;
-   double f;
+  int i;
+  double f;
 
-   Register(hmap_version,hmap_vc_id);
-   nParm = GetConfig("HMAP", TRUE, cParm, MAXGLOBS);
-   if (nParm>0){
-     if (GetConfInt(cParm,nParm,"TRACE",&i)) trace = i;
-     if (GetConfInt(cParm,nParm,"MINEGS",&i)) minEgs = i;
-     if (GetConfFlt(cParm,nParm,"MINOBS",&f)) minObs = f;
-     if (GetConfFlt(cParm,nParm,"MINVAR",&f)) minVar = f;
-     if (GetConfFlt(cParm,nParm,"MAPTAU",&f)) mapTau = f;
-     if (GetConfFlt(cParm,nParm,"MIXWEIGHTFLOOR",&f)) mixWeightFloor = MINMIX*f;
-   }
+  Register(hmap_version,hmap_vc_id);
+  nParm = GetConfig("HMAP", TRUE, cParm, MAXGLOBS);
+  if (nParm>0){
+    if (GetConfInt(cParm,nParm,"TRACE",&i)) trace = i;
+    if (GetConfInt(cParm,nParm,"MINEGS",&i)) minEgs = i;
+    if (GetConfFlt(cParm,nParm,"MINOBS",&f)) minObs = f;
+    if (GetConfFlt(cParm,nParm,"MINVAR",&f)) minVar = f;
+    if (GetConfFlt(cParm,nParm,"MAPTAU",&f)) mapTau = f;
+    if (GetConfFlt(cParm,nParm,"MIXWEIGHTFLOOR",&f)) mixWeightFloor = MINMIX*f;
+  }
 }
 
 /* --------------------------- Model Update --------------------- */
@@ -105,78 +105,78 @@ static int nFloorVarMix = 0;  /* # of mix comps with floored vars */
 /* FloorMixes: apply floor to given mix set */
 static void FloorMixes(MixtureElem *mixes, int M, float floor)
 {
-   float sum,fsum,scale;
-   MixtureElem *me;
-   int m;
+  float sum,fsum,scale;
+  MixtureElem *me;
+  int m;
    
-   sum = fsum = 0.0;
-   for (m=1,me=mixes; m<=M; m++,me++) {
-      if (me->weight>floor)
-         sum += me->weight;
-      else {
-         fsum += floor; me->weight = floor;
-      }
-   }
-   if (fsum>1.0) HError(2328,"FloorMixes: Floor sum too large (%f)",fsum);
-   if (fsum == 0.0) return;
-   if (sum == 0.0) HError(2328,"FloorMixes: No mixture weights above floor");
-   scale = (1.0-fsum)/sum;
-   for (m=1,me=mixes; m<=M; m++,me++)
-      if (me->weight>floor) me->weight *= scale;
+  sum = fsum = 0.0;
+  for (m=1,me=mixes; m<=M; m++,me++) {
+    if (me->weight>floor)
+      sum += me->weight;
+    else {
+      fsum += floor; me->weight = floor;
+    }
+  }
+  if (fsum>1.0) HError(2328,"FloorMixes: Floor sum too large (%f)",fsum);
+  if (fsum == 0.0) return;
+  if (sum == 0.0) HError(2328,"FloorMixes: No mixture weights above floor");
+  scale = (1.0-fsum)/sum;
+  for (m=1,me=mixes; m<=M; m++,me++)
+    if (me->weight>floor) me->weight *= scale;
 }
 
 /* FloorTMMixes: apply floor to given tied mix set */
 static void FloorTMMixes(Vector mixes, int M, float floor)
 {
-   float sum,fsum,scale,fltWt;
-   int m;
+  float sum,fsum,scale,fltWt;
+  int m;
    
-   sum = fsum = 0.0;
-   for (m=1; m<=M; m++) {
-      fltWt = mixes[m];
-      if (fltWt>floor)
-         sum += fltWt;
-      else {
-         fsum += floor;
-	 mixes[m] = floor;
-      }
-   }
-   if (fsum>1.0) HError(2327,"FloorTMMixes: Floor sum too large");
-   if (fsum == 0.0) return;
-   if (sum == 0.0) HError(2328,"FloorTMMixes: No mixture weights above floor");
-   scale = (1.0-fsum)/sum;
-   for (m=1; m<=M; m++){
-      fltWt = mixes[m];
-      if (fltWt>floor)
-	mixes[m] = fltWt*scale;
-   }
+  sum = fsum = 0.0;
+  for (m=1; m<=M; m++) {
+    fltWt = mixes[m];
+    if (fltWt>floor)
+      sum += fltWt;
+    else {
+      fsum += floor;
+      mixes[m] = floor;
+    }
+  }
+  if (fsum>1.0) HError(2327,"FloorTMMixes: Floor sum too large");
+  if (fsum == 0.0) return;
+  if (sum == 0.0) HError(2328,"FloorTMMixes: No mixture weights above floor");
+  scale = (1.0-fsum)/sum;
+  for (m=1; m<=M; m++){
+    fltWt = mixes[m];
+    if (fltWt>floor)
+      mixes[m] = fltWt*scale;
+  }
 }
 
 /* FloorDProbs: apply floor to given discrete prob set */
 static void FloorDProbs(ShortVec mixes, int M, float floor)
 {
-   float sum,fsum,scale,fltWt;
-   int m;
+  float sum,fsum,scale,fltWt;
+  int m;
    
-   sum = fsum = 0.0;
-   for (m=1; m<=M; m++) {
-      fltWt = Short2DProb(mixes[m]);
-      if (fltWt>floor)
-         sum += fltWt;
-      else {
-         fsum += floor;
-	 mixes[m] = DProb2Short(floor);
-      }
-   }
-   if (fsum>1.0) HError(2327,"FloorDProbs: Floor sum too large (%f)",fsum);
-   if (fsum == 0.0) return;
-   if (sum == 0.0) HError(2328,"FloorDProbs: No probabilities above floor");
-   scale = (1.0-fsum)/sum;
-   for (m=1; m<=M; m++){
-      fltWt = Short2DProb(mixes[m]);
-      if (fltWt>floor)
-	mixes[m] = DProb2Short(fltWt*scale);
-   }
+  sum = fsum = 0.0;
+  for (m=1; m<=M; m++) {
+    fltWt = Short2DProb(mixes[m]);
+    if (fltWt>floor)
+      sum += fltWt;
+    else {
+      fsum += floor;
+      mixes[m] = DProb2Short(floor);
+    }
+  }
+  if (fsum>1.0) HError(2327,"FloorDProbs: Floor sum too large (%f)",fsum);
+  if (fsum == 0.0) return;
+  if (sum == 0.0) HError(2328,"FloorDProbs: No probabilities above floor");
+  scale = (1.0-fsum)/sum;
+  for (m=1; m<=M; m++){
+    fltWt = Short2DProb(mixes[m]);
+    if (fltWt>floor)
+      mixes[m] = DProb2Short(fltWt*scale);
+  }
 }
 
 static void FloorMixtures(HSetKind hskind, StreamElem *ste, int M, float floor)
@@ -199,208 +199,208 @@ static void FloorMixtures(HSetKind hskind, StreamElem *ste, int M, float floor)
 /* UpdateWeights: use acc values to calc new estimate of mix weights */
 static void UpdateWeights(HMMSet *hset, int px, HLink hmm)
 {
-   int i,s,m,M=0,N,vSize;
-   float x,occi,denom,tmp;
-   WtAcc *wa;
-   StateElem *se;
-   StreamElem *ste;
-   MixtureElem *me;
+  int i,s,m,M=0,N,vSize;
+  float x,occi,denom,tmp;
+  WtAcc *wa;
+  StateElem *se;
+  StreamElem *ste;
+  MixtureElem *me;
    
-   N = hmm->numStates;
-   se = hmm->svec+2; 
-   for (i=2; i<N; i++,se++){
-      ste = se->info->pdf+1; 
-      for (s=1;s<=S; s++,ste++){
-	vSize = hset->swidth[s];
-	wa = (WtAcc *)ste->hook;
-	switch (hset->hsKind){
-  	case TIEDHS:
-	  M=hset->tmRecs[s].nMix;
-	  break;
-	case DISCRETEHS:
-	case PLAINHS:
-	case SHAREDHS:
-	  M=ste->nMix;
-	  break;
-	}
-	if (wa != NULL) {
-	  occi = wa->occ; 
-	  if (occi>0) {
-	    me = ste->spdf.cpdf + 1; denom=0;
-	    for (m=1; m<=M; m++,me++){
-	      tmp = me->weight*vSize*mapTau -1;
-	      if (tmp<0) tmp = 0;
-	      denom += tmp;
-	    }
-	    me = ste->spdf.cpdf + 1;
-	    for (m=1; m<=M; m++,me++){
-	      tmp = me->weight*vSize*mapTau -1;
-	      if (tmp<0) tmp = 0;
-	      x = (tmp + wa->c[m])/(denom + occi); 
-	      if (x>1.0){
-		if (x>1.001)
-		  HError(2393,"UpdateWeights: Model %d[%s]: mix too big in %d.%d.%d %5.5f",
-			 px,HMMPhysName(hset,hmm),i,s,m,x);
-		x = 1.0; 
-	      }
-	      switch (hset->hsKind){
-	      case TIEDHS:
-		ste->spdf.tpdf[m] = x;
-		break;
-	      case DISCRETEHS:
-		ste->spdf.dpdf[m]=DProb2Short(x);
-		break;
-	      case PLAINHS:
-	      case SHAREDHS:
-		me=ste->spdf.cpdf+m;
-		me->weight = x;
-		break;
-	      }
-	    }
-	    if (mixWeightFloor>0.0){
-	      FloorMixtures(hset->hsKind,ste,M,mixWeightFloor);		 
-	    }
-	    /* Force a normalisation becomes of weird zeroing .... */
-	    if ((hset->hsKind == PLAINHS) || (hset->hsKind == SHAREDHS)) {
-	      me = ste->spdf.cpdf + 1; x=0;
-	      for (m=1; m<=M; m++,me++)
-		x += me->weight;
-	      if (x>1.001)
-		HError(-1,"Updating Weights, sum too large (%f)\n",x);
-	      me = ste->spdf.cpdf + 1;
-	      for (m=1; m<=M; m++,me++)
-		me->weight /= x;	      
-	    } 
-	  }
-	  ste->hook = NULL;
-	}
+  N = hmm->numStates;
+  se = hmm->svec+2; 
+  for (i=2; i<N; i++,se++){
+    ste = se->info->pdf+1; 
+    for (s=1;s<=S; s++,ste++){
+      vSize = hset->swidth[s];
+      wa = (WtAcc *)ste->hook;
+      switch (hset->hsKind){
+      case TIEDHS:
+        M=hset->tmRecs[s].nMix;
+        break;
+      case DISCRETEHS:
+      case PLAINHS:
+      case SHAREDHS:
+        M=ste->nMix;
+        break;
       }
-   }
+      if (wa != NULL) {
+        occi = wa->occ; 
+        if (occi>0) {
+          me = ste->spdf.cpdf + 1; denom=0;
+          for (m=1; m<=M; m++,me++){
+            tmp = me->weight*vSize*mapTau -1;
+            if (tmp<0) tmp = 0;
+            denom += tmp;
+          }
+          me = ste->spdf.cpdf + 1;
+          for (m=1; m<=M; m++,me++){
+            tmp = me->weight*vSize*mapTau -1;
+            if (tmp<0) tmp = 0;
+            x = (tmp + wa->c[m])/(denom + occi); 
+            if (x>1.0){
+              if (x>1.001)
+                HError(2393,"UpdateWeights: Model %d[%s]: mix too big in %d.%d.%d %5.5f",
+                       px,HMMPhysName(hset,hmm),i,s,m,x);
+              x = 1.0; 
+            }
+            switch (hset->hsKind){
+            case TIEDHS:
+              ste->spdf.tpdf[m] = x;
+              break;
+            case DISCRETEHS:
+              ste->spdf.dpdf[m]=DProb2Short(x);
+              break;
+            case PLAINHS:
+            case SHAREDHS:
+              me=ste->spdf.cpdf+m;
+              me->weight = x;
+              break;
+            }
+          }
+          if (mixWeightFloor>0.0){
+            FloorMixtures(hset->hsKind,ste,M,mixWeightFloor);		 
+          }
+          /* Force a normalisation becomes of weird zeroing .... */
+          if ((hset->hsKind == PLAINHS) || (hset->hsKind == SHAREDHS)) {
+            me = ste->spdf.cpdf + 1; x=0;
+            for (m=1; m<=M; m++,me++)
+              x += me->weight;
+            if (x>1.001)
+              HError(-1,"Updating Weights, sum too large (%f)\n",x);
+            me = ste->spdf.cpdf + 1;
+            for (m=1; m<=M; m++,me++)
+              me->weight /= x;	      
+          } 
+        }
+        ste->hook = NULL;
+      }
+    }
+  }
 }
       
 /* UpdateMeans: use acc values to calc new estimate of means */
 static int UpdateMeans(HMMSet *hset, int px, HLink hmm)
 {
-   int i,s,m,k,M,N,vSize,nmapped;
-   float occim;
-   MuAcc *ma;
-   StateElem *se;
-   StreamElem *ste;
-   MixtureElem *me;
-   Vector mean;
+  int i,s,m,k,M,N,vSize,nmapped;
+  float occim;
+  MuAcc *ma;
+  StateElem *se;
+  StreamElem *ste;
+  MixtureElem *me;
+  Vector mean;
    
-   N = hmm->numStates; nmapped=0;
-   se = hmm->svec+2; 
-   for (i=2; i<N; i++,se++){
-      ste = se->info->pdf+1; 
-      for (s=1;s<=S;s++,ste++){
-         vSize = hset->swidth[s];
-         me = ste->spdf.cpdf + 1; M = ste->nMix;
-         for (m=1;m<=M;m++,me++)
-            if (MixWeight(hset,me->weight) > MINMIX){
-               mean = me->mpdf->mean;
-               ma = GetHook(mean);
-               if (ma != NULL){
-                  occim = ma->occ;
-                  if (occim > 0.0) {
-		    if (occim > minObs) nmapped++;
-		    for (k=1; k<=vSize; k++)
-		      mean[k] = ( mean[k] * mapTau + (ma->mu[k] + mean[k]*occim) )/( mapTau + occim );
-                  } 
-                  SetHook(mean,NULL);
-               }
-            }
-      }
-   }
-   return(nmapped);
+  N = hmm->numStates; nmapped=0;
+  se = hmm->svec+2; 
+  for (i=2; i<N; i++,se++){
+    ste = se->info->pdf+1; 
+    for (s=1;s<=S;s++,ste++){
+      vSize = hset->swidth[s];
+      me = ste->spdf.cpdf + 1; M = ste->nMix;
+      for (m=1;m<=M;m++,me++)
+        if (MixWeight(hset,me->weight) > MINMIX){
+          mean = me->mpdf->mean;
+          ma = GetHook(mean);
+          if (ma != NULL){
+            occim = ma->occ;
+            if (occim > 0.0) {
+              if (occim > minObs) nmapped++;
+              for (k=1; k<=vSize; k++)
+                mean[k] = ( mean[k] * mapTau + (ma->mu[k] + mean[k]*occim) )/( mapTau + occim );
+            } 
+            SetHook(mean,NULL);
+          }
+        }
+    }
+  }
+  return(nmapped);
 }
 
 /* UpdateVars: use acc values to calc new estimate of variances */
 static void UpdateVars(HMMSet *hset, int px, HLink hmm)
 {
-   int i,s,m,k,M,N,vSize;
-   float occim,x,muDiffk,dmu;
-   Vector minV;
-   VaAcc *va;
-   MuAcc *ma;
-   StateElem *se;
-   StreamElem *ste;
-   MixtureElem *me;
-   Vector mean,var;
-   Covariance cov;
-   Boolean mixFloored,shared;
+  int i,s,m,k,M,N,vSize;
+  float occim,x,muDiffk,dmu;
+  Vector minV;
+  VaAcc *va;
+  MuAcc *ma;
+  StateElem *se;
+  StreamElem *ste;
+  MixtureElem *me;
+  Vector mean,var;
+  Covariance cov;
+  Boolean mixFloored,shared;
    
-   N = hmm->numStates;
-   se = hmm->svec+2; 
-   for (i=2; i<N; i++,se++){
-      ste = se->info->pdf+1;
-      for (s=1;s<=S;s++,ste++){
-         vSize = hset->swidth[s];
-         minV = vFloor[s];
-         me = ste->spdf.cpdf + 1; M = ste->nMix;
-         for (m=1;m<=M;m++,me++)
-	   if (MixWeight(hset,me->weight) > MINMIX){
-               cov = me->mpdf->cov;
-               va = GetHook(cov.var);
-               mean = me->mpdf->mean;
-               ma = GetHook(mean);
-               if (va != NULL){
-                  occim = va->occ;
-                  mixFloored = FALSE;
-                  if (occim > 0.0){
-		    shared=(GetUse(cov.var)>1 || ma==NULL || ma->occ<=0.0);
-                     if (me->mpdf->ckind==DIAGC) {
-		         var = cov.var;
-			 for (k=1; k<=vSize; k++){
-			   if (shared) muDiffk = 0.0;
-			   else {
-			     dmu = (ma->mu[k])/(mapTau+occim);
-			     muDiffk = 2*dmu*ma->mu[k] - dmu*dmu*occim;
-			   }
-                           x = (mapTau*var[k]  + va->cov.var[k] - muDiffk) / (mapTau + occim);
-			   if (x<minV[k]) {
-                             x = minV[k];
-                              nFloorVar++;
-                              mixFloored = TRUE;
-			    }
-			   cov.var[k] = x;
-			 }
-       		     }
-                     else { /* FULLC */
-		       HError(999,"MAP estimation of full covariance matrices not supported");
-		     }
-		  }
-                  if (mixFloored == TRUE) nFloorVarMix++;
-		  SetHook(cov.var,NULL);
-               }
+  N = hmm->numStates;
+  se = hmm->svec+2; 
+  for (i=2; i<N; i++,se++){
+    ste = se->info->pdf+1;
+    for (s=1;s<=S;s++,ste++){
+      vSize = hset->swidth[s];
+      minV = vFloor[s];
+      me = ste->spdf.cpdf + 1; M = ste->nMix;
+      for (m=1;m<=M;m++,me++)
+        if (MixWeight(hset,me->weight) > MINMIX){
+          cov = me->mpdf->cov;
+          va = GetHook(cov.var);
+          mean = me->mpdf->mean;
+          ma = GetHook(mean);
+          if (va != NULL){
+            occim = va->occ;
+            mixFloored = FALSE;
+            if (occim > 0.0){
+              shared=(GetUse(cov.var)>1 || ma==NULL || ma->occ<=0.0);
+              if (me->mpdf->ckind==DIAGC) {
+                var = cov.var;
+                for (k=1; k<=vSize; k++){
+                  if (shared) muDiffk = 0.0;
+                  else {
+                    dmu = (ma->mu[k])/(mapTau+occim);
+                    muDiffk = 2*dmu*ma->mu[k] - dmu*dmu*occim;
+                  }
+                  x = (mapTau*var[k]  + va->cov.var[k] - muDiffk) / (mapTau + occim);
+                  if (x<minV[k]) {
+                    x = minV[k];
+                    nFloorVar++;
+                    mixFloored = TRUE;
+                  }
+                  cov.var[k] = x;
+                }
+              }
+              else { /* FULLC */
+                HError(999,"MAP estimation of full covariance matrices not supported");
+              }
             }
-      }
-   }
+            if (mixFloored == TRUE) nFloorVarMix++;
+            SetHook(cov.var,NULL);
+          }
+        }
+    }
+  }
 }
 
 static int TotMixInSet(HMMSet *hset)
 {
-   HMMScanState hss;
-   HLink hmm;
-   int nmix=0;
+  HMMScanState hss;
+  HLink hmm;
+  int nmix=0;
 
-   NewHMMScan(hset,&hss);
-   do {
-     hmm = hss.hmm;
-     while (GoNextState(&hss,TRUE)) {
-       while (GoNextStream(&hss,TRUE)) {
-	 if (hss.isCont)                     /* PLAINHS or SHAREDHS */
-	   while (GoNextMix(&hss,TRUE)) {
-	     if (!IsSeenV(hss.mp->mean)) {
-	       nmix++;
-	       TouchV(hss.mp->mean);
-	     } 
-	   }
-       }
-     }
-   } while (GoNextHMM(&hss));
-   EndHMMScan(&hss);
-   return(nmix);
+  NewHMMScan(hset,&hss);
+  do {
+    hmm = hss.hmm;
+    while (GoNextState(&hss,TRUE)) {
+      while (GoNextStream(&hss,TRUE)) {
+        if (hss.isCont)                     /* PLAINHS or SHAREDHS */
+          while (GoNextMix(&hss,TRUE)) {
+            if (!IsSeenV(hss.mp->mean)) {
+              nmix++;
+              TouchV(hss.mp->mean);
+            } 
+          }
+      }
+    }
+  } while (GoNextHMM(&hss));
+  EndHMMScan(&hss);
+  return(nmix);
 }
 
 /* -------------------------- MAP code --------------------------------- */
@@ -432,19 +432,19 @@ void MAPUpdateModels(HMMSet *hset, UPDSet uFlags)
     n = (int)hmm->hook;
     if (n<minEgs && !(trace&T_UPD))
       HError(-2331,"UpdateModels: %s[%d] copied: only %d egs\n",
-	     HMMPhysName(hset,hmm),px,n);
+             HMMPhysName(hset,hmm),px,n);
     if (n>=minEgs && n>0) {
       if (uFlags & UPTRANS)
-	HError(999,"No support for MAP updating transition probabilities");
+        HError(999,"No support for MAP updating transition probabilities");
       if (maxM>1 && uFlags & UPMIXES)
-	UpdateWeights(hset,px,hmm);
+        UpdateWeights(hset,px,hmm);
       if (hset->hsKind != TIEDHS){
-	if (uFlags & UPVARS)
-	  UpdateVars(hset,px,hmm);
-	if (uFlags & UPMEANS)
-	  nmapped += UpdateMeans(hset,px,hmm);
-	if (uFlags & (UPMEANS|UPVARS))
-	  FixGConsts(hmm);
+        if (uFlags & UPVARS)
+          UpdateVars(hset,px,hmm);
+        if (uFlags & UPMEANS)
+          nmapped += UpdateMeans(hset,px,hmm);
+        if (uFlags & (UPMEANS|UPVARS))
+          FixGConsts(hmm);
       }  
     }
     px++;
@@ -454,7 +454,7 @@ void MAPUpdateModels(HMMSet *hset, UPDSet uFlags)
     printf("Observed components (means) %d of %d: %.2f\n",nmapped,totM,100*(float)nmapped/(float)totM);
     if (nFloorVar > 0)
       printf("Total %d floored variance elements in %d different mixes\n",
-	     nFloorVar,nFloorVarMix);
+             nFloorVar,nFloorVarMix);
     fflush(stdout);
   }
 }

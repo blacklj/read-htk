@@ -1479,7 +1479,7 @@ void WriteHTKHeader(FILE *f, long nSamp, long sampP, short sampS,
    else
       if (bSwap!=NULL) *bSwap=FALSE;
    if (fwrite(&hdr, 1, n, f) != n)
-      HError(6214,"WriteHTKHeader: Cannot write HTK format header"); 
+      HError(6214,"WriteHTKHeader: Cannot write HTK format header");
 }
 
 
@@ -1488,11 +1488,11 @@ static void PutHTKHeaderInfo(FILE *f, Wave w)
 {
    WriteHTKHeader (f, w->nSamples, (long) w->sampPeriod, 2, WAVEFORM,NULL);
 }
-   
+
 /* ---------------------- Wave Interface Routines --------------------- */
-   
+
 /* EXPORT-> OpenWaveInput: open input waveform file */
-Wave OpenWaveInput(MemHeap *x, char *fname, FileFormat fmt, HTime winDur, 
+Wave OpenWaveInput(MemHeap *x, char *fname, FileFormat fmt, HTime winDur,
                    HTime frPeriod, HTime *sampPeriod)
 {
    Wave w;                /* New Wave Object */
@@ -1503,7 +1503,7 @@ Wave OpenWaveInput(MemHeap *x, char *fname, FileFormat fmt, HTime winDur,
    Boolean isEXF;	  /* File name is extended */
    char actfile[MAXFNAMELEN]; /* actual file name */
    long stindex,enindex;  /* segment indices */
-   int sampSize = 2;       
+   int sampSize = 2;
 
    /* Create Wave Object and open external file */
    w = CreateWave(x,fmt);
@@ -1519,25 +1519,25 @@ Wave OpenWaveInput(MemHeap *x, char *fname, FileFormat fmt, HTime winDur,
       HError(6210,"OpenWaveInput: cannot segment piped input");
       return NULL;
    }
-   
+
    /* Get Header  */
    switch(w->fmt) {
    case ALIEN:    fBytes = GetALIENHeaderInfo (f, w, &ia);  break;
    case NOHEAD:   fBytes = GetNOHEADHeaderInfo(f, w, &ia);  break;
    case HTK:      fBytes = GetHTKHeaderInfo   (f, w, &ia);  break;
-   case TIMIT:    fBytes = GetTIMITHeaderInfo (f, w, &ia);  break; 
-   case OGI:      fBytes = GetOGIHeaderInfo   (f, w, &ia);  break; 
-   case NIST:     fBytes = GetNISTHeaderInfo  (f, w, &ia);  break; 
-   case SCRIBE:   fBytes = GetSCRIBEHeaderInfo(f, w, &ia);  break; 
-   case SDES1:    fBytes = GetSDES1HeaderInfo (f, w, &ia);  break; 
+   case TIMIT:    fBytes = GetTIMITHeaderInfo (f, w, &ia);  break;
+   case OGI:      fBytes = GetOGIHeaderInfo   (f, w, &ia);  break;
+   case NIST:     fBytes = GetNISTHeaderInfo  (f, w, &ia);  break;
+   case SCRIBE:   fBytes = GetSCRIBEHeaderInfo(f, w, &ia);  break;
+   case SDES1:    fBytes = GetSDES1HeaderInfo (f, w, &ia);  break;
    case AIFF:     fBytes = GetAIFFHeaderInfo  (f, w, &ia);  break;
    case SUNAU8:   fBytes = GetSUNAU8HeaderInfo(f, w, &ia);
       sampSize = 1;
       break;
    case WAV:      fBytes = GetWAVHeaderInfo(f, w, &ia);     break;
    case ESIG:     fBytes = GetESIGHeaderInfo(f, w, &ia);    break;
-   default:       
-      FClose(f,w->isPipe);  
+   default:
+      FClose(f,w->isPipe);
       HRError(6270,"OpenWaveInput: Unknown format %s",fmtmap[w->fmt]);
       return(NULL);
       break;
@@ -1554,39 +1554,39 @@ Wave OpenWaveInput(MemHeap *x, char *fname, FileFormat fmt, HTime winDur,
    }
 
    if(fBytes<0){
-      FClose(f,w->isPipe);  
+      FClose(f,w->isPipe);
       HRError(6213,"OpenWaveInput: Get[format]HeaderInfo failed");
       return(NULL);
    }
-   
+
    /* Check for user override of sample period and set frame size/rate */
-   if (*sampPeriod > 0.0)  
+   if (*sampPeriod > 0.0)
       w->sampPeriod = *sampPeriod;
    else {
       if (GetConfFlt(cParm,numParm,"SOURCERATE",&t))
          w->sampPeriod = t;
    }
    *sampPeriod = w->sampPeriod;
-   if (w->sampPeriod <= 0.0){ 
-      FClose(f,w->isPipe);  
+   if (w->sampPeriod <= 0.0){
+      FClose(f,w->isPipe);
       HRError(6230,"OpenWaveInput: cannot determine sample period for %s",fname);
       return(NULL);
    }
    w->frSize = (int) (winDur / w->sampPeriod);
    w->frRate = (int) (frPeriod / w->sampPeriod);
-   
-   
+
+
    /* Copy Data from file into memory */
    if(LoadData(f, w, fBytes)<SUCCESS){
-      FClose(f,w->isPipe);  
+      FClose(f,w->isPipe);
       HRError(6213,"OpenWaveInput: LoadData failed");
       return(NULL);
    }
-   
+
    /* If necessary call format dependent conversion routine */
    if (ia&DoCVT)
       switch(w->fmt) {
-      case NIST:     
+      case NIST:
          if(ConvertNISTData(w,ia)<SUCCESS){ 
             FClose(f,w->isPipe);  
             HRError(6270,"OpenWaveInput: No Convertor for format %s",fmtmap[w->fmt]);
